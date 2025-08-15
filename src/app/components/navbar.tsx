@@ -1,0 +1,183 @@
+'use client'
+import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
+import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '../contexts/AuthContext'
+
+const navigationLogged = [
+    { name: 'Nuestro Equipo', href: '/team', current: false },
+  { name: 'Pacientes', href: '/patients', current: false },
+  { name: 'Admisiones', href: '/admissions', current: false },
+]
+
+const navigation = [
+    { name: 'Nuestro Equipo', href: '/team', current: false },
+    
+  ]
+
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ')
+}
+
+export default function Navbar() {
+  const pathname = usePathname()
+  const router = useRouter()
+  const { user, doctor, logout } = useAuth();
+
+  const navigationWithCurrent = navigation.map(item => ({
+    ...item,
+    current: pathname === item.href
+  }))
+
+  const navigationLoggedWithCurrent = navigationLogged.map(item => ({
+    ...item,
+    current: pathname === item.href
+  }))
+
+  const handleLogin = () => {
+    router.push('/login')
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/')
+  }
+
+  return (
+    <Disclosure as="nav" className="relative bg-hospital-blue">
+      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+        <div className="relative flex h-16 items-center justify-between">
+          <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+            {/* Mobile menu button*/}
+            <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/5 hover:text-white focus:outline-2 focus:-outline-offset-1 focus:outline-[#4fbbeb]">
+              <span className="absolute -inset-0.5" />
+              <span className="sr-only">Open main menu</span>
+              <Bars3Icon aria-hidden="true" className="block size-6 group-data-open:hidden" />
+              <XMarkIcon aria-hidden="true" className="hidden size-6 group-data-open:block" />
+            </DisclosureButton>
+          </div>
+          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+            <div className="flex shrink-0 items-center">
+              <img
+                alt="Hospital General de Real"
+                src="/hosp-title-wh.png"
+                className="h-8 w-auto cursor-pointer"
+                onClick={() => router.push('/')}    
+              />
+            </div>
+            <div className="hidden sm:ml-6 sm:block">
+              <div className="flex space-x-4">
+                {user ? navigationLoggedWithCurrent.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    aria-current={item.current ? 'page' : undefined}
+                    className={classNames(
+                      item.current ? 'bg-hospital-blue/80 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
+                      'rounded-md px-3 py-2 text-md font-medium',
+                    )}
+                  >
+                    {item.name}
+                  </a>
+                )) : navigationWithCurrent.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    aria-current={item.current ? 'page' : undefined}
+                    className={classNames(
+                      item.current ? 'bg-hospital-blue/80 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
+                      'rounded-md px-3 py-2 text-md font-medium',
+                    )}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+          
+            {user ? (
+              <>
+                <Menu as="div" className="relative ml-3">
+                  <MenuButton className="relative flex items-center space-x-2 rounded-md px-3 py-2 text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4fbbeb]">
+                    <span className="absolute -inset-1.5" />
+                    <span className="sr-only">Open user menu</span>
+                    {doctor && (
+                      <div className="flex flex-col items-start">
+                        <div className="font-semibold text-sm">{doctor.name}</div>
+                        <div className="text-xs text-gray-300">DNI: {doctor.dni}</div>
+                      </div>
+                    )}
+                  </MenuButton>
+
+                  <MenuItems
+                    transition
+                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg outline outline-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                  >
+                    {doctor && (
+                      <>
+                        <MenuItem>
+                          <div className="block px-4 py-2 text-sm text-gray-700">
+                            <div className="font-medium">{doctor.name}</div>
+                            <div className="text-gray-500">DNI: {doctor.dni}</div>
+                          </div>
+                        </MenuItem>
+                        <div className="border-t border-gray-100 my-1"></div>
+                      </>
+                    )}
+
+                    <MenuItem>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
+                      >
+                        Cerrar sesión
+                      </button>
+                    </MenuItem>
+                  </MenuItems>
+                </Menu>
+              </>
+            ) : (
+              <button
+                onClick={handleLogin}
+                className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4fbbeb]"
+              >
+                Iniciar sesión
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <DisclosurePanel className="sm:hidden">
+        <div className="space-y-1 px-2 pt-2 pb-3">
+          {navigationWithCurrent.map((item) => (
+            <DisclosureButton
+              key={item.name}
+              as="a"
+              href={item.href}
+              aria-current={item.current ? 'page' : undefined}
+              className={classNames(
+                item.current ? 'bg-hospital-blue/80 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
+                'block rounded-md px-3 py-2 text-base font-medium',
+              )}
+            >
+              {item.name}
+            </DisclosureButton>
+          ))}
+          {!user && (
+            <div className="pt-4 pb-3 border-t border-gray-700">
+              <button
+                onClick={handleLogin}
+                className="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4fbbeb]"
+              >
+                Iniciar sesión
+              </button>
+            </div>
+          )}
+        </div>
+      </DisclosurePanel>
+    </Disclosure>
+  )
+}
