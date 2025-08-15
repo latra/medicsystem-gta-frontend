@@ -1,99 +1,36 @@
-# HospReal Frontend
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Aplicación web para gestión hospitalaria desarrollada con Next.js, React y Firebase.
+## Getting Started
 
-## 🚀 Características
+First, run the development server:
 
-- Autenticación con Firebase
-- Gestión de pacientes
-- Sistema de admisiones
-- Interfaz moderna con Tailwind CSS
-- Diseño responsive
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## 🛠️ Tecnologías
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- **Framework**: Next.js 15
-- **Frontend**: React 19
-- **Estilos**: Tailwind CSS
-- **Autenticación**: Firebase Auth
-- **Base de datos**: Firebase Firestore
-- **Lenguaje**: TypeScript
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## 📦 Instalación
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/tu-usuario/hospreal-front.git
-   cd hospreal-front
-   ```
+## Learn More
 
-2. **Instalar dependencias:**
-   ```bash
-   npm install
-   ```
+To learn more about Next.js, take a look at the following resources:
 
-3. **Configurar variables de entorno:**
-   - Copia el archivo `.env.local.example` a `.env.local`
-   - Configura las variables de Firebase y API
-   - Consulta `ENVIRONMENT_SETUP.md` para más detalles
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-4. **Ejecutar en desarrollo:**
-   ```bash
-   npm run dev
-   ```
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## 🌐 Despliegue en GitHub Pages
+## Deploy on Vercel
 
-### Configuración Inicial
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-1. **Habilitar GitHub Pages:**
-   - Ve a tu repositorio en GitHub
-   - Settings → Pages
-   - Source: GitHub Actions
-
-2. **Configurar secretos del repositorio:**
-   - Settings → Secrets and variables → Actions
-   - Agrega las variables de Firebase y API
-
-3. **Hacer push de los cambios:**
-   ```bash
-   git add .
-   git commit -m "Configuración para GitHub Pages"
-   git push origin main
-   ```
-
-### Despliegue Automático
-
-El despliegue se ejecuta automáticamente cuando:
-- Haces push a la rama `main`
-- Creas un pull request a `main`
-
-### URL de Producción
-
-Tu aplicación estará disponible en:
-`https://[tu-usuario].github.io/hospreal-front`
-
-## 📋 Scripts Disponibles
-
-- `npm run dev` - Servidor de desarrollo
-- `npm run build` - Build de producción
-- `npm run start` - Servidor de producción
-- `npm run lint` - Verificar código
-- `npm run test:build` - Probar build localmente
-
-## 📚 Documentación
-
-- [Configuración de Variables de Entorno](ENVIRONMENT_SETUP.md)
-- [Guía de Despliegue](DEPLOYMENT.md)
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
