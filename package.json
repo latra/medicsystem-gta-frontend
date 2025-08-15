@@ -2,6 +2,7 @@
   "name": "hospreal-front",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://latra.github.io/hospreal-front",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -9,7 +10,9 @@
     "start": "next start",
     "lint": "next lint",
     "export": "next build",
-    "test:build": "bash scripts/test-build.sh"
+    "test:build": "bash scripts/test-build.sh",
+    "deploy": "npm run build && gh-pages -d out",
+    "deploy:preview": "npm run build && gh-pages -d out --no-push"
   },
   "dependencies": {
     "@firebase/auth": "^1.11.0",
@@ -25,6 +28,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
