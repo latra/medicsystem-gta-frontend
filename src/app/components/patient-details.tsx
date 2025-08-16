@@ -71,6 +71,9 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
       case 'street': return 'Calle'
       case 'hospital': return 'Hospital'
       case 'traslad': return 'Traslado'
+      case 'other': return 'Otro'
+      case 'headquarters': return 'Sede'
+      case 'home': return 'Casa'
       default: return type
     }
   }
@@ -163,7 +166,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
       ></div>
 
       {/* Modal panel */}
-      <div className="relative bg-white shadow-sm rounded-lg max-w-4xl w-full max-h-[85vh] overflow-y-auto">
+      <div className="relative bg-white shadow-sm rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-hospital-blue text-white p-6 rounded-t-lg">
           <div className="flex items-center justify-between">
@@ -380,7 +383,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                           Estado
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Tipo Atención
+                          Lugar de la atención
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Atendido por
@@ -415,13 +418,15 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                            {formatAttentionType(visit.attention_type)}
+                            {formatAttentionType(visit.attention_place)} {visit.attention_details ? `- ${visit.attention_details}` : ''}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {visit.doctor_dni} | {visit.doctor_name}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
-                            {visit.reason || 'No especificado'}
+                          <td className="px-4 py-3 text-sm text-gray-900 max-w-md">
+                            <div className="whitespace-pre-wrap break-words">
+                              {visit.reason || 'No especificado'}
+                            </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {visit.location || 'No especificada'}
