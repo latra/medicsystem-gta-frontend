@@ -12,10 +12,22 @@ interface CreateVisitProps {
   onVisitCreated?: () => void
 }
 
-const attentionTypes = [
-  { value: 'street', label: 'Calle' },
-  { value: 'hospital', label: 'Hospital' },
-  { value: 'traslad', label: 'Traslado' }
+const attentionPlaces = [
+  { value: 'home', label: 'Casa', description: 'Atención médica realizada en la residencia particular del paciente' },
+  { value: 'street', label: 'Calle', description: 'Atención en espacios abiertos como calles, parques, carreteras o plazas' },
+  { value: 'headquarters', label: 'Sede', description: 'Atención dentro de una instalación fija, ya sea legal o ilegal' },
+  { value: 'hospital', label: 'Hospital', description: 'Atención dentro de un centro médico oficial' },
+  { value: 'traslad', label: 'Traslado', description: 'Atención durante el transporte del paciente, ya sea en ambulancia, helicóptero o vehículo no oficial' },
+  { value: 'other', label: 'Otro', description: 'Atención en otro lugar no convencional' }
+]
+
+const headquartersTypes = [
+  { value: 'comisaria', label: 'Comisaría' },
+  { value: 'estacion', label: 'Estación' },
+  { value: 'oficina', label: 'Oficina' },
+  { value: 'base_criminal', label: 'Base Criminal' },
+  { value: 'taller_clandestino', label: 'Taller Clandestino' },
+  { value: 'sede_organizacion', label: 'Sede de Organización' }
 ]
 
 const patientStatuses = [
@@ -38,7 +50,8 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
   const [formData, setFormData] = useState<CreateVisitData>({
     patient_dni: patientDni,
     reason: '',
-    attention_type: 'street',
+    attention_place: 'street',
+    attention_details: '',
     location: '',
     admission_status: 'conscious',
     admission_heart_rate: undefined,
@@ -47,6 +60,8 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
     admission_oxygen_saturation: undefined,
     triage: 'unknown'
   })
+  const [headquartersType, setHeadquartersType] = useState<string>('comisaria')
+  const [otherPlace, setOtherPlace] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -77,14 +92,30 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
       if (!formData.reason || !formData.location) {
         throw new Error('Por favor completa todos los campos obligatorios')
       }
+      
+      // Validate other place if selected
+      if (formData.attention_place === 'other' && !otherPlace.trim()) {
+        throw new Error('Por favor especifica el lugar de atención')
+      }
 
-      await createVisit(formData)
+      // Prepare visit data with headquarters type if applicable
+      const visitData = {
+        ...formData,
+        attention_details: formData.attention_place === 'headquarters' 
+          ? headquartersTypes.find(type => type.value === headquartersType)?.label || ''
+          : formData.attention_place === 'other'
+          ? otherPlace
+          : formData.attention_details
+      }
+
+      await createVisit(visitData)
       
       // Reset form and close modal
       setFormData({
         patient_dni: patientDni,
         reason: '',
-        attention_type: 'street',
+        attention_place: 'street',
+        attention_details: '',
         location: '',
         admission_status: 'conscious',
         admission_heart_rate: undefined,
@@ -93,6 +124,8 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
         admission_oxygen_saturation: undefined,
         triage: 'unknown'
       })
+      setHeadquartersType('comisaria')
+      setOtherPlace('')
       
       onVisitCreated?.()
       onClose()
@@ -162,7 +195,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
                     name="reason"
                     value={formData.reason}
                     onChange={handleInputChange}
-                    rows={3}
+                    rows={6}
                     required
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm resize-none"
                     placeholder="Describa el motivo de la atención..."
@@ -170,21 +203,71 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Tipo de Atención *
+                    Lugar de la atención *
                   </label>
-                  <select
-                    name="attention_type"
-                    value={formData.attention_type}
-                    onChange={handleInputChange}
-                    required
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm"
-                  >
-                    {attentionTypes.map(type => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="attention_place"
+                      value={formData.attention_place}
+                      onChange={handleInputChange}
+                      required
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm"
+                    >
+                      {attentionPlaces.map(type => (
+                        <option key={type.value} value={type.value} title={type.description}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                    {/* Custom dropdown with tooltips for better UX */}
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-8 pointer-events-none">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Tooltip info */}
+                  <div className="mt-1 text-xs text-gray-500">
+                    {attentionPlaces.find(place => place.value === formData.attention_place)?.description}
+                  </div>
+                  
+                  {/* Headquarters type selector */}
+                  {formData.attention_place === 'headquarters' && (
+                    <div className="mt-4">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Tipo de Sede *
+                      </label>
+                      <select
+                        value={headquartersType}
+                        onChange={(e) => setHeadquartersType(e.target.value)}
+                        required
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm"
+                      >
+                        {headquartersTypes.map(type => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {/* Other place input */}
+                  {formData.attention_place === 'other' && (
+                    <div className="mt-4">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Especificar Lugar *
+                      </label>
+                      <input
+                        type="text"
+                        value={otherPlace}
+                        onChange={(e) => setOtherPlace(e.target.value)}
+                        required
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm"
+                        placeholder="Describa el lugar de atención..."
+                      />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -193,7 +276,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
                   <input
                     type="text"
                     name="location"
-                    value={formData.location}
+                    value={formData.location || 'Ciudad Real'}
                     onChange={handleInputChange}
                     required
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm"

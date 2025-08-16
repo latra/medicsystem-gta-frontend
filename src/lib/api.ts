@@ -148,7 +148,8 @@ export interface VisitDetails {
   visit_status: 'admission' | 'discharge' | 'pending'
   patient_dni: string
   reason: string
-  attention_type: 'street' | 'hospital' | 'traslad'
+  attention_place: 'street' | 'hospital' | 'traslad' | 'other' | 'headquarters' | 'home' | 'other'
+  attention_details: string
   location: string
   date_of_admission: string | null
   admission_status: 'conscious' | 'unconscious' | 'in_danger' | 'stable' | 'critical' | null
@@ -173,7 +174,8 @@ export interface VisitDetails {
 export interface CreateVisitData {
   patient_dni: string
   reason: string
-  attention_type: 'street' | 'hospital' | 'traslad'
+  attention_place: 'street' | 'hospital' | 'traslad' | 'other' | 'headquarters' | 'home'
+  attention_details: string
   location: string
   admission_status?: 'conscious' | 'unconscious' | 'in_danger' | 'stable' | 'critical'
   admission_heart_rate?: number
@@ -217,7 +219,8 @@ export interface PatientAdmitted {
   dni: string
   visit_id: string
   reason: string
-  attention_type: 'street' | 'hospital' | 'traslad'
+  attention_place: 'street' | 'hospital' | 'traslad' | 'other' | 'headquarters' | 'home' | 'other'
+  attention_details: string
   triage: 'unknown' | 'green' | 'yellow' | 'red' | 'black'
   doctor_name: string
   doctor_dni: string
