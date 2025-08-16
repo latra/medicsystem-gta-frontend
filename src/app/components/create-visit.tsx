@@ -9,7 +9,7 @@ interface CreateVisitProps {
   patientName: string
   isOpen: boolean
   onClose: () => void
-  onVisitCreated?: () => void
+  onVisitCreated?: (visitId: string) => void
 }
 
 const attentionPlaces = [
@@ -108,7 +108,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
           : formData.attention_details
       }
 
-      await createVisit(visitData)
+      const createdVisit = await createVisit(visitData)
       
       // Reset form and close modal
       setFormData({
@@ -127,7 +127,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
       setHeadquartersType('comisaria')
       setOtherPlace('')
       
-      onVisitCreated?.()
+              onVisitCreated?.(createdVisit.visit_id)
       onClose()
     } catch (err: any) {
       console.error('Error creating visit:', err)
@@ -159,7 +159,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
         <div className="bg-hospital-blue text-white p-6 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Ingresar Paciente</h3>
+              <h3 className="text-lg font-semibold">Formulario de Ingreso</h3>
               <p className="text-gray-300 text-sm mt-1">{patientName} - {patientDni}</p>
             </div>
             <button
@@ -183,7 +183,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
           <div className="space-y-6">
             {/* Información Básica */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+              <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                 Información de la Visita
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -203,7 +203,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Lugar de la atención *
+                    Lugar donde se ha atendido *
                   </label>
                   <div className="relative">
                     <select
@@ -305,7 +305,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
 
             {/* Signos Vitales */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+              <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                 Signos Vitales
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -367,7 +367,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
 
             {/* Triage */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+              <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                 Clasificación de Triage
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -405,7 +405,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
               className="bg-hospital-blue hover:bg-hospital-blue/80 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4fbbeb] disabled:opacity-50 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="h-4 w-4" />
-              {isLoading ? 'Creando visita...' : 'Crear Visita'}
+              {isLoading ? 'Registrando Ingreso...' : 'Ingresar Paciente'}
             </button>
           </div>
         </form>

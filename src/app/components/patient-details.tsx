@@ -26,6 +26,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
   const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null)
   const [isVisitModalOpen, setIsVisitModalOpen] = useState(false)
   const [isCreateVisitModalOpen, setIsCreateVisitModalOpen] = useState(false)
+  const [isNewlyCreatedVisit, setIsNewlyCreatedVisit] = useState(false)
 
   const fetchVisits = async () => {
     if (!patient) return
@@ -59,7 +60,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
 
   const formatVisitStatus = (status: string) => {
     switch (status) {
-      case 'admission': return 'Ingreso'
+      case 'admission': return 'Ingresado/a'
       case 'discharge': return 'Alta'
       case 'pending': return 'Pendiente'
       default: return status
@@ -135,6 +136,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
   const handleVisitModalClose = () => {
     setIsVisitModalOpen(false)
     setSelectedVisitId(null)
+    setIsNewlyCreatedVisit(false)
   }
 
   const handleVisitUpdate = () => {
@@ -150,9 +152,13 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
     setIsCreateVisitModalOpen(false)
   }
 
-  const handleVisitCreated = () => {
+  const handleVisitCreated = (visitId: string) => {
     // Refresh visits list when a new visit is created
     fetchVisits()
+    // Automatically open the visit details for the newly created visit
+    setSelectedVisitId(visitId)
+    setIsNewlyCreatedVisit(true)
+    setIsVisitModalOpen(true)
   }
 
   const currentPatient = editedPatient || patient
@@ -480,6 +486,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
         isOpen={isVisitModalOpen}
         onClose={handleVisitModalClose}
         onVisitUpdate={handleVisitUpdate}
+        autoEditMode={isNewlyCreatedVisit}
       />
 
       {/* Create Visit Modal */}

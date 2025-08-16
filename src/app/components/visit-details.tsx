@@ -9,6 +9,7 @@ interface VisitDetailsProps {
   isOpen: boolean
   onClose: () => void
   onVisitUpdate?: (updatedVisit: VisitDetails) => void
+  autoEditMode?: boolean
 }
 
 type TabType = 'admission' | 'medical' | 'evolution' | 'discharge'
@@ -22,7 +23,7 @@ const attentionPlaces = [
   { value: 'home', label: 'Casa' }
 ]
 
-export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }: VisitDetailsProps) {
+export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate, autoEditMode }: VisitDetailsProps) {
   const [visit, setVisit] = useState<VisitDetails | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -54,6 +55,14 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
       fetchVisitDetails()
     }
   }, [isOpen, visitId])
+
+  // Auto-edit mode for newly created visits
+  useEffect(() => {
+    if (autoEditMode && visit && !isEditing) {
+      setIsEditing(true)
+      setActiveTab('medical')
+    }
+  }, [autoEditMode, visit, isEditing])
 
   // Reset active tab when visit status changes
   useEffect(() => {
