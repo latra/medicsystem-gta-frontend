@@ -9,7 +9,7 @@ interface CreateVisitProps {
   patientName: string
   isOpen: boolean
   onClose: () => void
-  onVisitCreated?: () => void
+  onVisitCreated?: (visitId: string) => void
 }
 
 const attentionPlaces = [
@@ -108,7 +108,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
           : formData.attention_details
       }
 
-      await createVisit(visitData)
+      const createdVisit = await createVisit(visitData)
       
       // Reset form and close modal
       setFormData({
@@ -127,7 +127,7 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
       setHeadquartersType('comisaria')
       setOtherPlace('')
       
-      onVisitCreated?.()
+              onVisitCreated?.(createdVisit.visit_id)
       onClose()
     } catch (err: any) {
       console.error('Error creating visit:', err)
