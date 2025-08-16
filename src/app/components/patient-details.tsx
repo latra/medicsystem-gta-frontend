@@ -60,7 +60,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
 
   const formatVisitStatus = (status: string) => {
     switch (status) {
-      case 'admission': return 'Ingreso'
+      case 'admission': return 'Ingresado/a'
       case 'discharge': return 'Alta'
       case 'pending': return 'Pendiente'
       default: return status
