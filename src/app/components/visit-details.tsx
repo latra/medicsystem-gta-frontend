@@ -13,6 +13,15 @@ interface VisitDetailsProps {
 
 type TabType = 'admission' | 'medical' | 'evolution' | 'discharge'
 
+const attentionPlaces = [
+  { value: 'street', label: 'Calle' },
+  { value: 'hospital', label: 'Hospital' },
+  { value: 'traslad', label: 'Traslado' },
+  { value: 'other', label: 'Otro' },
+  { value: 'headquarters', label: 'Sede' },
+  { value: 'home', label: 'Casa' }
+]
+
 export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }: VisitDetailsProps) {
   const [visit, setVisit] = useState<VisitDetails | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -297,9 +306,9 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Tipo de Atención</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Lugar de la atención</label>
                     <p className="text-sm text-gray-900 bg-white px-3 py-2 rounded-md border border-gray-300">
-                      {formatAttentionType(currentVisit.attention_type)}
+                      {attentionPlaces.find(place => place.value === currentVisit.attention_place)?.label || 'No registrado'} {currentVisit.attention_details ? `- ${currentVisit.attention_details}` : ''}
                     </p>
                   </div>
                   <div>

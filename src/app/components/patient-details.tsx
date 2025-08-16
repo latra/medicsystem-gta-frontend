@@ -209,7 +209,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'info'
                   ? 'border-hospital-blue text-hospital-blue'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-900 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <UserIcon className="h-4 w-4 inline mr-2" />
@@ -220,7 +220,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'history'
                   ? 'border-hospital-blue text-hospital-blue'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-900 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <ClockIcon className="h-4 w-4 inline mr-2" />
@@ -235,12 +235,12 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
             <>
               {/* Información Personal */}
               <div className="bg-gray-50 rounded-lg p-6 mb-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Información Personal
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Edad</label>
+                    <label className="block text-xs font-medium text-black mb-1">Edad</label>
                     {isEditing ? (
                       <input
                         type="number"
@@ -255,13 +255,13 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Sexo</label>
+                    <label className="block text-xs font-medium text-black mb-1">Sexo</label>
                     <p className="text-sm text-gray-900 bg-white px-3 py-2 rounded-md border border-gray-300">
                       {formatSex(currentPatient.sex)}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Teléfono</label>
+                    <label className="block text-xs font-medium text-black mb-1">Teléfono</label>
                     {isEditing ? (
                       <input
                         type="tel"
@@ -276,7 +276,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Tipo Sangre</label>
+                    <label className="block text-xs font-medium text-black mb-1">Tipo Sangre</label>
                     <div className="inline-block bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm font-medium">
                       {currentPatient.blood_type}
                     </div>
@@ -286,12 +286,12 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
 
               {/* Información Médica */}
               <div className="bg-gray-50 rounded-lg p-6 mb-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Información Médica
                 </h4>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Alergias</label>
+                    <label className="block text-xs font-medium text-black mb-1">Alergias</label>
                     {isEditing ? (
                       <textarea
                         value={currentPatient.allergies}
@@ -307,7 +307,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Notas Médicas</label>
+                    <label className="block text-xs font-medium text-black mb-1">Notas Médicas</label>
                     {isEditing ? (
                       <textarea
                         value={currentPatient.medical_notes}
@@ -327,11 +327,11 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
 
               {/* Notas Generales */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Notas Generales
                 </h4>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Observaciones</label>
+                  <label className="block text-xs font-medium text-black mb-1">Observaciones</label>
                   {isEditing ? (
                     <textarea
                       value={currentPatient.notes}
@@ -351,7 +351,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
           ) : (
             /* Historial de Visitas */
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+              <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                 Historial de Visitas
               </h4>
               

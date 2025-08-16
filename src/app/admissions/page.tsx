@@ -152,7 +152,7 @@ export default function Admissions() {
                         Médico Asignado
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tipo de Atención
+                        Lugar de la atención
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Motivo
@@ -189,7 +189,7 @@ export default function Admissions() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {formatAttentionType(patient.attention_type)}
+                            {formatAttentionType(patient.attention_place)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
