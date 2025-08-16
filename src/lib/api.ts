@@ -138,7 +138,8 @@ export interface PatientVisit {
   date_of_admission: string
   date_of_discharge: string
   reason: string
-  attention_type: 'street' | 'emergency' | 'consultation'
+  attention_place: 'street' | 'hospital' | 'traslad' | 'other' | 'headquarters' | 'home' | 'other'
+  attention_details: string
   location: string
   doctor_name: string
 }

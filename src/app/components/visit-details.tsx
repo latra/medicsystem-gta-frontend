@@ -236,7 +236,7 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'admission'
                   ? 'border-hospital-blue text-hospital-blue'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-900 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <UserIcon className="h-4 w-4 inline mr-2" />
@@ -247,18 +247,18 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'medical'
                   ? 'border-hospital-blue text-hospital-blue'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-900 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <HeartIcon className="h-4 w-4 inline mr-2" />
-              Médico
+              Evaluación Médica
             </button>
             <button
               onClick={() => setActiveTab('evolution')}
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'evolution'
                   ? 'border-hospital-blue text-hospital-blue'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-900 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <ChartBarIcon className="h-4 w-4 inline mr-2" />
@@ -270,7 +270,7 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
                 className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'discharge'
                     ? 'border-hospital-blue text-hospital-blue'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-gray-900 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
                 <ClockIcon className="h-4 w-4 inline mr-2" />
@@ -286,7 +286,7 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
             <div className="space-y-6">
               {/* Información Básica */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Información Básica
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -337,7 +337,7 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
 
               {/* Signos Vitales */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Signos Vitales al Ingreso
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -413,9 +413,32 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
 
           {activeTab === 'medical' && (
             <div className="space-y-6">
+              
+              {/* Exámenes */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
+                  Pruebas Realizadas
+                </h4>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Pruebas</label>
+                  {isEditing ? (
+                    <textarea
+                      value={currentVisit.tests || ''}
+                      onChange={(e) => setEditedVisit(prev => prev ? { ...prev, tests: e.target.value } : null)}
+                      rows={3}
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm resize-none"
+                      placeholder="Ingrese los exámenes solicitados..."
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-900 bg-white px-3 py-2 rounded-md border border-gray-300 min-h-[60px] whitespace-pre-wrap">
+                      {currentVisit.tests || 'No especificado'}
+                    </p>
+                  )}
+                </div>
+              </div>
               {/* Diagnóstico */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Diagnóstico y Tratamiento
                 </h4>
                 <div className="space-y-4">
@@ -470,28 +493,6 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
                 </div>
               </div>
 
-              {/* Exámenes */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
-                  Exámenes
-                </h4>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Exámenes Solicitados</label>
-                  {isEditing ? (
-                    <textarea
-                      value={currentVisit.tests || ''}
-                      onChange={(e) => setEditedVisit(prev => prev ? { ...prev, tests: e.target.value } : null)}
-                      rows={3}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm resize-none"
-                      placeholder="Ingrese los exámenes solicitados..."
-                    />
-                  ) : (
-                    <p className="text-sm text-gray-900 bg-white px-3 py-2 rounded-md border border-gray-300 min-h-[60px] whitespace-pre-wrap">
-                      {currentVisit.tests || 'No especificado'}
-                    </p>
-                  )}
-                </div>
-              </div>
             </div>
           )}
 
@@ -499,7 +500,7 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
             <div className="space-y-6">
               {/* Evolución */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Evolución del Paciente
                 </h4>
                 <div className="space-y-4">
@@ -544,7 +545,7 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate }
             <div className="space-y-6">
               {/* Alta */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
+                <h4 className="text-sm font-bold text-black uppercase tracking-wide mb-4">
                   Información de Alta
                 </h4>
                 <div className="space-y-4">
