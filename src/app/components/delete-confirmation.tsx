@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Patient } from '../../lib/api'
+import { PatientSummary } from '../../lib/api'
 
 interface DeleteConfirmationProps {
-  patient: Patient | null
+  patient: PatientSummary | null
   isOpen: boolean
   onClose: () => void
-  onConfirm: (patient: Patient) => Promise<void>
+  onConfirm: (patient: PatientSummary) => Promise<void>
 }
 
 export default function DeleteConfirmation({ patient, isOpen, onClose, onConfirm }: DeleteConfirmationProps) {

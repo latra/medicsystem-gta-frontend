@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { auth } from '../firebase/config'
 import { getCurrentDoctor, Doctor } from '../../lib/api'
+import { handleAuthError } from '../../lib/auth-utils'
 import { useRouter } from 'next/navigation'
 
 interface AuthContextType {
@@ -32,10 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error: any) {
           console.error('Error fetching doctor data:', error)
           
-          if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-            console.error('Authentication failed for doctor data. User may need to re-authenticate.')
-          }
-          
+          // Handle authentication errors
+          await handleAuthError(error)
           setDoctor(null)
         }
       } else {
@@ -74,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signOut(auth)
       setDoctor(null)
+      router.push('/login')
     } catch (error) {
       console.error('Error signing out:', error)
     }

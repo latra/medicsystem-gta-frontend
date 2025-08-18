@@ -1,4 +1,5 @@
 import { auth } from '../app/firebase/config'
+import { handleAuthError } from './auth-utils'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -59,6 +60,11 @@ export async function apiCall<T>(
     const errorMessage = `API call failed: ${response.status} ${response.statusText}`
     console.error(errorMessage, 'for endpoint:', endpoint)
     
+    // Handle 401 Unauthorized error - trigger logout
+    if (response.status === 401) {
+      await handleAuthError({ status: 401, message: 'Unauthorized' })
+    }
+    
     // Try to get more details from response
     try {
       const errorData = await response.text()
@@ -87,20 +93,162 @@ export async function getCurrentDoctor(): Promise<Doctor> {
 }
 
 // API functions for patients
+export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
+export type Gender = 'male' | 'female'
+export type PatientStatus = 'conscious' | 'unconscious' | 'in_danger' | 'stable' | 'critical'
+export type AttentionType = 'home' | 'headquarters' | 'street' | 'hospital' | 'traslad' | 'other'
+export type Triage = 'unknown' | 'green' | 'yellow' | 'red' | 'black'
+
 export interface Patient {
   name: string
   dni: string
   age: number
-  sex: 'male' | 'female'
-  phone: string
-  blood_type: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
-  allergies: string
-  medical_notes: string
-  notes: string
+  sex: Gender
+  phone?: string
+  blood_type: BloodType
+  created_at: string
+  updated_at: string
 }
 
-export async function getPatients(): Promise<Patient[]> {
-  return apiCall<Patient[]>('/patients/')
+export interface PatientSummary {
+  name: string
+  dni: string
+  age: number
+  sex: Gender
+  blood_type: BloodType
+  last_visit?: string
+}
+
+export interface PatientCreate {
+  name: string
+  dni: string
+  age: number
+  sex: Gender
+  phone?: string
+  blood_type: BloodType
+  allergies?: string[]
+  medical_notes?: string
+  major_surgeries?: string[]
+  current_medications?: string[]
+  chronic_conditions?: string[]
+  family_history?: string
+}
+
+export interface PatientUpdate {
+  name?: string
+  age?: number
+  phone?: string
+  discapacity_level?: number
+}
+
+export interface BloodAnalysis {
+  red_blood_cells: number
+  hemoglobin: number
+  hematocrit: number
+  platelets: number
+  lymphocytes: number
+  glucose: number
+  cholesterol: number
+  urea: number
+  cocaine?: number
+  alcohol?: number
+  mdma?: number
+  fentanyl?: number
+  notes?: string
+  analysis_id: string
+  date_performed: string
+  performed_by?: string
+}
+
+export interface BloodAnalysisCreate {
+  red_blood_cells: number
+  hemoglobin: number
+  hematocrit: number
+  platelets: number
+  lymphocytes: number
+  glucose: number
+  cholesterol: number
+  urea: number
+  cocaine?: number
+  alcohol?: number
+  mdma?: number
+  fentanyl?: number
+  notes?: string
+}
+
+export interface RadiologyStudy {
+  study_type: string
+  body_part: string
+  findings: string
+  image_url?: string
+  radiologist?: string
+  study_id: string
+  date_performed: string
+  performed_by?: string
+}
+
+export interface RadiologyStudyCreate {
+  study_type: string
+  body_part: string
+  findings: string
+  image_url?: string
+  radiologist?: string
+}
+
+export interface MedicalHistory {
+  allergies: string[]
+  medical_notes: string
+  major_surgeries: string[]
+  current_medications: string[]
+  chronic_conditions: string[]
+  family_history: string
+  blood_analyses: BloodAnalysis[]
+  radiology_studies: RadiologyStudy[]
+  last_updated: string
+  updated_by?: string
+}
+
+export interface PatientComplete {
+  name: string
+  dni: string
+  age: number
+  sex: Gender
+  phone?: string
+  blood_type: BloodType
+  discapacity_level?: number
+  created_at: string
+  updated_at: string
+  medical_history: MedicalHistory
+  created_by?: string
+  last_updated_by?: string
+}
+
+export interface PatientMedicalHistoryUpdate {
+  allergies?: string[]
+  medical_notes?: string
+  major_surgeries?: string[]
+  current_medications?: string[]
+  chronic_conditions?: string[]
+  family_history?: string
+}
+
+export async function getPatients(): Promise<PatientSummary[]> {
+  return apiCall<PatientSummary[]>('/patients/')
+}
+
+export async function getPatient(dni: string): Promise<Patient> {
+  return apiCall<Patient>(`/patients/${dni}`)
+}
+
+export async function getPatientComplete(dni: string): Promise<PatientComplete> {
+  return apiCall<PatientComplete>(`/patients/${dni}/complete`)
+}
+
+export async function updatePatient(dni: string, patientData: PatientUpdate): Promise<Patient> {
+  return apiCall<Patient>(`/patients/${dni}`, {
+    method: 'PUT',
+    body: JSON.stringify(patientData)
+  })
 }
 
 export async function deletePatient(dni: string): Promise<void> {
@@ -109,100 +257,132 @@ export async function deletePatient(dni: string): Promise<void> {
   })
 }
 
-export async function createPatient(patientData: Omit<Patient, 'phone' | 'allergies' | 'medical_notes' | 'notes'> & {
-  phone?: string
-  allergies?: string
-  medical_notes?: string
-  notes?: string
-}): Promise<Patient> {
-  // Ensure optional fields are sent as empty strings if not provided
-  const dataToSend = {
-    ...patientData,
-    phone: patientData.phone || '',
-    allergies: patientData.allergies || '',
-    medical_notes: patientData.medical_notes || '',
-    notes: patientData.notes || ''
-  }
-  
+export async function createPatient(patientData: PatientCreate): Promise<Patient> {
   return apiCall<Patient>('/patients/', {
     method: 'POST',
-    body: JSON.stringify(dataToSend)
+    body: JSON.stringify(patientData)
+  })
+}
+
+export async function updatePatientMedicalHistory(dni: string, medicalData: PatientMedicalHistoryUpdate): Promise<MedicalHistory> {
+  return apiCall<MedicalHistory>(`/patients/${dni}/medical-history`, {
+    method: 'PUT',
+    body: JSON.stringify(medicalData)
+  })
+}
+
+export async function addBloodAnalysis(dni: string, analysisData: BloodAnalysisCreate): Promise<BloodAnalysis> {
+  return apiCall<BloodAnalysis>(`/patients/${dni}/blood-analysis`, {
+    method: 'POST',
+    body: JSON.stringify(analysisData)
+  })
+}
+
+export async function addRadiologyStudy(dni: string, studyData: RadiologyStudyCreate): Promise<RadiologyStudy> {
+  return apiCall<RadiologyStudy>(`/patients/${dni}/radiology-study`, {
+    method: 'POST',
+    body: JSON.stringify(studyData)
   })
 }
 
 // API functions for patient visits
-export interface PatientVisit {
+export type VisitStatus = 'admission' | 'discharge'
+
+export interface VisitSummary {
   visit_id: string
-  visit_status: 'admission' | 'discharge' | 'pending'
+  visit_status: VisitStatus
   doctor_dni: string
-  date_of_admission: string
-  date_of_discharge: string
-  reason: string
-  attention_place: 'street' | 'hospital' | 'traslad' | 'other' | 'headquarters' | 'home' | 'other'
-  attention_details: string
-  location: string
   doctor_name: string
+  doctor_email?: string
+  doctor_specialty?: string
+  date_of_admission: string
+  date_of_discharge?: string
+  reason: string
+  attention_place: AttentionType
+  attention_details?: string
+  location: string
 }
 
-export interface VisitDetails {
-  visit_id: string
-  visit_status: 'admission' | 'discharge' | 'pending'
+export interface Visit {
   patient_dni: string
   reason: string
-  attention_place: 'street' | 'hospital' | 'traslad' | 'other' | 'headquarters' | 'home' | 'other'
-  attention_details: string
+  attention_place: AttentionType
+  attention_details?: string
   location: string
-  date_of_admission: string | null
-  admission_status: 'conscious' | 'unconscious' | 'in_danger' | 'stable' | 'critical' | null
-  admission_heart_rate: number | null
-  admission_blood_pressure: number | null
-  admission_temperature: number | null
-  admission_oxygen_saturation: number | null
-  triage: 'unknown' | 'green' | 'yellow' | 'red' | 'black' | null
-  doctor_dni: string
-  diagnosis: string | null
-  tests: string | null
-  treatment: string | null
-  evolution: string | null
-  recommendations: string | null
-  medication: string | null
-  date_of_discharge: string | null
-  specialist_follow_up: string | null
-  additional_observations: string | null
-  notes: string | null
-}
-
-export interface CreateVisitData {
-  patient_dni: string
-  reason: string
-  attention_place: 'street' | 'hospital' | 'traslad' | 'other' | 'headquarters' | 'home'
-  attention_details: string
-  location: string
-  admission_status?: 'conscious' | 'unconscious' | 'in_danger' | 'stable' | 'critical'
+  admission_status: PatientStatus
   admission_heart_rate?: number
   admission_blood_pressure?: number
   admission_temperature?: number
   admission_oxygen_saturation?: number
-  triage?: 'unknown' | 'green' | 'yellow' | 'red' | 'black'
+  triage?: Triage
+  visit_id: string
+  visit_status: VisitStatus
+  date_of_admission?: string
+  doctor_dni: string
+  doctor_name: string
+  doctor_email?: string
+  doctor_specialty?: string
+  diagnosis?: string
+  tests?: string
+  treatment?: string
+  evolution?: string
+  recommendations?: string
+  medication?: string
+  date_of_discharge?: string
+  specialist_follow_up?: string
+  additional_observations?: string
+  notes?: string
 }
 
-export async function getPatientVisits(patientDni: string): Promise<PatientVisit[]> {
-  return apiCall<PatientVisit[]>(`/visit/${patientDni}`)
+export interface VisitBase {
+  patient_dni: string
+  reason: string
+  attention_place: AttentionType
+  attention_details?: string
+  location: string
+  admission_status: PatientStatus
+  admission_heart_rate?: number
+  admission_blood_pressure?: number
+  admission_temperature?: number
+  admission_oxygen_saturation?: number
+  triage?: Triage
 }
 
-export async function getVisitDetails(visitId: string): Promise<VisitDetails> {
-  return apiCall<VisitDetails>(`/visit/info/${visitId}`)
+export interface VisitUpdate {
+  reason?: string
+  admission_heart_rate?: number
+  admission_blood_pressure?: number
+  admission_temperature?: number
+  admission_oxygen_saturation?: number
+  triage?: Triage
+  diagnosis?: string
+  tests?: string
+  treatment?: string
+  evolution?: string
+  recommendations?: string
+  medication?: string
+  specialist_follow_up?: string
+  additional_observations?: string
+  notes?: string
 }
 
-export async function updateVisit(visitId: string, visitData: Partial<VisitDetails>): Promise<VisitDetails> {
-  return apiCall<VisitDetails>(`/visit/${visitId}`, {
+export async function getPatientVisits(patientDni: string): Promise<VisitSummary[]> {
+  return apiCall<VisitSummary[]>(`/visit/${patientDni}`)
+}
+
+export async function getVisitDetails(visitId: string): Promise<Visit> {
+  return apiCall<Visit>(`/visit/info/${visitId}`)
+}
+
+export async function updateVisit(visitId: string, visitData: VisitUpdate): Promise<Visit> {
+  return apiCall<Visit>(`/visit/${visitId}`, {
     method: 'PUT',
     body: JSON.stringify(visitData)
   })
 }
 
-export async function createVisit(visitData: CreateVisitData): Promise<VisitDetails> {
-  return apiCall<VisitDetails>('/visit/', {
+export async function createVisit(visitData: VisitBase): Promise<Visit> {
+  return apiCall<Visit>('/visit/', {
     method: 'POST',
     body: JSON.stringify(visitData)
   })
