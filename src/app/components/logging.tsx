@@ -114,6 +114,18 @@ export default function LoginForm() {
               {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
             </button>
           </div>
+          
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              ¿No tienes una cuenta?{' '}
+              <a
+                href="/register"
+                className="font-medium text-hospital-blue hover:text-hospital-blue/80"
+              >
+                Registrarse como médico o policía
+              </a>
+            </p>
+          </div>
         </form>
       </div>
     </div>

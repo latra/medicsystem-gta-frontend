@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Navbar from "../components/navbar"
+import DoctorRoute from "../components/DoctorRoute"
 import PatientsTable from "../components/patients-table"
 import PatientDetails from "../components/patient-details"
 import RegisterPatient from "../components/register-patient"
@@ -81,52 +82,54 @@ export default function Patients() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Pacientes</h1>
-            <p className="text-gray-600">Visualiza y administra la información de los pacientes</p>
+    <DoctorRoute>
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Pacientes</h1>
+              <p className="text-gray-600">Visualiza y administra la información de los pacientes</p>
+            </div>
+            <button
+              onClick={handleOpenRegister}
+              className="bg-hospital-blue hover:bg-hospital-blue/80 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              + Registrar Nuevo Paciente
+            </button>
           </div>
-          <button
-            onClick={handleOpenRegister}
-            className="bg-hospital-blue hover:bg-hospital-blue/80 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            + Registrar Nuevo Paciente
-          </button>
+
+          <PatientsTable 
+            onPatientDetails={handlePatientDetails}
+            refreshTrigger={refreshTrigger}
+            onPatientDelete={handleOpenDelete}
+          />
+
+          {/* Patient Details Modal */}
+          <PatientDetails
+            patient={selectedPatient}
+            isOpen={isDetailsOpen}
+            onClose={handleCloseDetails}
+            onPatientUpdate={handlePatientUpdated}
+          />
+
+          {/* Register Patient Modal */}
+          <RegisterPatient
+            isOpen={isRegisterOpen}
+            onClose={handleCloseRegister}
+            onPatientCreated={handlePatientCreated}
+          />
+
+          {/* Delete Confirmation Modal */}
+          <DeleteConfirmation
+            patient={patientToDelete}
+            isOpen={isDeleteOpen}
+            onClose={handleCloseDelete}
+            onConfirm={handlePatientDelete}
+          />
         </div>
-
-        <PatientsTable 
-          onPatientDetails={handlePatientDetails}
-          refreshTrigger={refreshTrigger}
-          onPatientDelete={handleOpenDelete}
-        />
-
-        {/* Patient Details Modal */}
-        <PatientDetails
-          patient={selectedPatient}
-          isOpen={isDetailsOpen}
-          onClose={handleCloseDetails}
-          onPatientUpdate={handlePatientUpdated}
-        />
-
-        {/* Register Patient Modal */}
-        <RegisterPatient
-          isOpen={isRegisterOpen}
-          onClose={handleCloseRegister}
-          onPatientCreated={handlePatientCreated}
-        />
-
-        {/* Delete Confirmation Modal */}
-        <DeleteConfirmation
-          patient={patientToDelete}
-          isOpen={isDeleteOpen}
-          onClose={handleCloseDelete}
-          onConfirm={handlePatientDelete}
-        />
       </div>
-    </div>
+    </DoctorRoute>
   )
 }

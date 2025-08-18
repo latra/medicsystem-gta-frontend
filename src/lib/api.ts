@@ -79,7 +79,214 @@ export async function apiCall<T>(
   return response.json()
 }
 
-// API functions for doctor data
+// API functions for user data (new system)
+export type UserRole = 'admin' | 'doctor' | 'police' | 'patient'
+
+export interface User {
+  name: string
+  dni: string
+  email: string
+  phone?: string
+  user_id: string
+  firebase_uid: string
+  role: UserRole
+  enabled: boolean
+  is_admin: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface DoctorProfile {
+  medical_license?: string
+  specialty?: string
+  sub_specialty?: string
+  institution?: string
+  years_experience?: number
+  can_prescribe?: boolean
+  can_diagnose?: boolean
+  can_perform_procedures?: boolean
+}
+
+export interface DoctorUser extends User {
+  specialty?: string
+  medical_license?: string
+  institution?: string
+  years_experience?: number
+}
+
+export interface PoliceProfile {
+  badge_number?: string
+  rank?: string
+  department?: string
+  station?: string
+  years_service?: number
+  can_arrest?: boolean
+  can_investigate?: boolean
+  can_access_medical_info?: boolean
+}
+
+export interface PoliceUser extends User {
+  badge_number?: string
+  rank?: string
+  department?: string
+  station?: string
+  years_service?: number
+}
+
+// Admin-only user creation interfaces
+export interface DoctorCreate {
+  name: string
+  dni: string
+  email: string
+  phone?: string
+  role?: UserRole
+  doctor_profile: DoctorProfile
+}
+
+export interface PoliceCreate {
+  name: string
+  dni: string
+  email: string
+  phone?: string
+  role?: UserRole
+  police_profile: PoliceProfile
+}
+
+// Public registration interfaces
+export interface DoctorRegister {
+  name: string
+  dni: string
+  email: string
+  phone?: string
+  specialty?: string
+  medical_license?: string
+  institution?: string
+  years_experience?: number
+}
+
+export interface PoliceRegister {
+  name: string
+  dni: string
+  email: string
+  phone?: string
+  badge_number: string
+  rank?: string
+  department?: string
+  station?: string
+  years_service?: number
+}
+
+// API functions for user data
+export async function getCurrentUser(): Promise<User> {
+  return apiCall<User>('/user/me')
+}
+
+export async function createDoctor(doctorData: DoctorCreate): Promise<DoctorUser> {
+  return apiCall<DoctorUser>('/user/doctor', {
+    method: 'POST',
+    body: JSON.stringify(doctorData)
+  })
+}
+
+export async function createPolice(policeData: PoliceCreate): Promise<PoliceUser> {
+  return apiCall<PoliceUser>('/user/police', {
+    method: 'POST',
+    body: JSON.stringify(policeData)
+  })
+}
+
+export async function getAllDoctors(): Promise<DoctorUser[]> {
+  return apiCall<DoctorUser[]>('/user/doctors')
+}
+
+export async function getAllPolice(): Promise<PoliceUser[]> {
+  return apiCall<PoliceUser[]>('/user/police')
+}
+
+// Public registration functions (no auth required during registration)
+export async function registerDoctor(doctorData: DoctorRegister): Promise<any> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  
+  const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/user/register/doctor`
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(doctorData)
+  })
+  
+  if (!response.ok) {
+    const errorMessage = `Registration failed: ${response.status} ${response.statusText}`
+    console.error(errorMessage)
+    
+    // Try to get more details from response
+    try {
+      const errorData = await response.text()
+      console.error('Error response body:', errorData)
+      
+      // Try to parse as JSON for better error messages
+      try {
+        const parsedError = JSON.parse(errorData)
+        if (parsedError.detail) {
+          throw new Error(parsedError.detail)
+        }
+      } catch (parseError) {
+        // If can't parse as JSON, use the raw text
+        throw new Error(errorData || errorMessage)
+      }
+    } catch (e) {
+      console.error('Could not read error response body')
+      throw new Error(errorMessage)
+    }
+  }
+  
+  return response.json()
+}
+
+export async function registerPolice(policeData: PoliceRegister): Promise<any> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  
+  const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/user/register/police`
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(policeData)
+  })
+  
+  if (!response.ok) {
+    const errorMessage = `Registration failed: ${response.status} ${response.statusText}`
+    console.error(errorMessage)
+    
+    // Try to get more details from response
+    try {
+      const errorData = await response.text()
+      console.error('Error response body:', errorData)
+      
+      // Try to parse as JSON for better error messages
+      try {
+        const parsedError = JSON.parse(errorData)
+        if (parsedError.detail) {
+          throw new Error(parsedError.detail)
+        }
+      } catch (parseError) {
+        // If can't parse as JSON, use the raw text
+        throw new Error(errorData || errorMessage)
+      }
+    } catch (e) {
+      console.error('Could not read error response body')
+      throw new Error(errorMessage)
+    }
+  }
+  
+  return response.json()
+}
+
+// Legacy doctor functions for backward compatibility
 export interface Doctor {
   name: string
   dni: string
@@ -90,6 +297,10 @@ export interface Doctor {
 
 export async function getCurrentDoctor(): Promise<Doctor> {
   return apiCall<Doctor>('/doctor/me')
+}
+
+export async function getCurrentPolice(): Promise<PoliceUser> {
+  return apiCall<PoliceUser>('/police/me')
 }
 
 // API functions for patients

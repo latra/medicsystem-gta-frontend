@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { getAdmittedPatients, type PatientAdmitted } from '../../lib/api'
 import Navbar from "../components/navbar"
+import DoctorRoute from "../components/DoctorRoute"
 import VisitDetails from "../components/visit-details"
 import { EyeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
@@ -78,157 +79,153 @@ export default function Admissions() {
     })
   }
 
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="flex flex-col items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-hospital-blue"></div>
-          <p className="mt-4 text-gray-600">Cargando admisiones...</p>
-        </div>
-      </>
-    )
-  }
-
-  if (error) {
-    return (
-      <>
-        <Navbar />
-        <div className="flex flex-col items-center justify-center h-screen">
-          <div className="bg-red-50 border border-red-200 rounded-md p-6 max-w-md">
-            <div className="flex items-center">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
-              <p className="text-red-800">{error}</p>
-            </div>
-            <button
-              onClick={fetchAdmittedPatients}
-              className="mt-4 bg-hospital-blue hover:bg-hospital-blue/80 text-white font-medium py-2 px-4 rounded-md"
-            >
-              Reintentar
-            </button>
-          </div>
-        </div>
-      </>
-    )
-  }
-
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admisiones</h1>
-            <p className="mt-2 text-gray-600">
-              Pacientes actualmente en admisión ({admittedPatients.length})
-            </p>
+    <DoctorRoute>
+      {loading ? (
+        <>
+          <Navbar />
+          <div className="flex flex-col items-center justify-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-hospital-blue"></div>
+            <p className="mt-4 text-gray-600">Cargando admisiones...</p>
           </div>
-
-          {/* Table */}
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-            {admittedPatients.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
-                  <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay admisiones activas</h3>
-                <p className="text-gray-500">No hay pacientes actualmente en admisión.</p>
+        </>
+      ) : error ? (
+        <>
+          <Navbar />
+          <div className="flex flex-col items-center justify-center h-screen">
+            <div className="bg-red-50 border border-red-200 rounded-md p-6 max-w-md">
+              <div className="flex items-center">
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
+                <p className="text-red-800">{error}</p>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Triaje
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Paciente
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Médico Asignado
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Lugar de la atención
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Motivo
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {admittedPatients.map((patient) => (
-                      <tr 
-                        key={patient.visit_id}
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => handleVisitClick(patient.visit_id)}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {formatTriage(patient.triage)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {patient.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              DNI: {patient.dni}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {patient.doctor_name} | {patient.doctor_dni}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {formatAttentionType(patient.attention_place)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 max-w-xs truncate" title={patient.reason}>
-                            {patient.reason}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleVisitClick(patient.visit_id)
-                            }}
-                            className="text-hospital-blue hover:text-hospital-blue/80 flex items-center gap-1"
+              <button
+                onClick={fetchAdmittedPatients}
+                className="mt-4 bg-hospital-blue hover:bg-hospital-blue/80 text-white font-medium py-2 px-4 rounded-md"
+              >
+                Reintentar
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <Navbar />
+          <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              {/* Header */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-gray-900">Admisiones</h1>
+                <p className="mt-2 text-gray-600">
+                  Pacientes actualmente en admisión ({admittedPatients.length})
+                </p>
+              </div>
+
+              {/* Table */}
+              <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+                {admittedPatients.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 mb-4">
+                      <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay admisiones activas</h3>
+                    <p className="text-gray-500">No hay pacientes actualmente en admisión.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Triaje
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Paciente
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Médico Asignado
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Lugar de la atención
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Motivo
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Acciones
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {admittedPatients.map((patient) => (
+                          <tr 
+                            key={patient.visit_id}
+                            className="hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => handleVisitClick(patient.visit_id)}
                           >
-                            <EyeIcon className="h-4 w-4" />
-                            Ver detalles
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {formatTriage(patient.triage)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {patient.name}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  DNI: {patient.dni}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                {patient.doctor_name} | {patient.doctor_dni}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {formatAttentionType(patient.attention_place)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-900 max-w-xs truncate" title={patient.reason}>
+                                {patient.reason}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleVisitClick(patient.visit_id)
+                                }}
+                                className="text-hospital-blue hover:text-hospital-blue/80 flex items-center gap-1"
+                              >
+                                <EyeIcon className="h-4 w-4" />
+                                Ver detalles
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Visit Details Modal */}
-      <VisitDetails
-        visitId={selectedVisitId}
-        isOpen={showVisitDetails}
-        onClose={() => {
-          setShowVisitDetails(false)
-          setSelectedVisitId(null)
-        }}
-        onVisitUpdate={handleVisitUpdate}
-      />
-    </>
+          {/* Visit Details Modal */}
+          <VisitDetails
+            visitId={selectedVisitId}
+            isOpen={showVisitDetails}
+            onClose={() => {
+              setShowVisitDetails(false)
+              setSelectedVisitId(null)
+            }}
+            onVisitUpdate={handleVisitUpdate}
+          />
+        </>
+      )}
+    </DoctorRoute>
   )
 }
