@@ -157,7 +157,8 @@ export interface BloodAnalysis {
   notes?: string
   analysis_id: string
   date_performed: string
-  performed_by?: string
+  performed_by_dni?: string
+  performed_by_name?: string
 }
 
 export interface BloodAnalysisCreate {
@@ -181,10 +182,10 @@ export interface RadiologyStudy {
   body_part: string
   findings: string
   image_url?: string
-  radiologist?: string
   study_id: string
   date_performed: string
-  performed_by?: string
+  performed_by_dni?: string
+  performed_by_name?: string
 }
 
 export interface RadiologyStudyCreate {

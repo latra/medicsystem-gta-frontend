@@ -1352,12 +1352,22 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                         )}
                       </div>
 
-                      {analysis.notes && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <span className="font-medium text-sm">Notas:</span>
-                          <p className="text-sm text-gray-700 mt-1">{analysis.notes}</p>
-                        </div>
-                      )}
+                      <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
+                        {analysis.performed_by_name && (
+                          <div>
+                            <span className="font-medium text-sm">Realizado por:</span>
+                            <span className="text-sm text-gray-700 ml-2">
+                              {analysis.performed_by_name} ({analysis.performed_by_dni})
+                            </span>
+                          </div>
+                        )}
+                        {analysis.notes && (
+                          <div>
+                            <span className="font-medium text-sm">Notas:</span>
+                            <p className="text-sm text-gray-700 mt-1">{analysis.notes}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
@@ -1434,17 +1444,6 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                           placeholder="https://..."
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Radiólogo (DNI)
-                        </label>
-                        <input
-                          type="text"
-                          onChange={(e) => setNewRadiologyStudy(prev => ({ ...prev, radiologist: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                          placeholder="DNI del radiólogo interpretante..."
-                        />
-                      </div>
                     </div>
                   </div>
                   <div className="mt-4 flex justify-end space-x-3">
@@ -1490,10 +1489,12 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                           <span className="font-medium text-sm">Hallazgos:</span>
                           <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{study.findings}</p>
                         </div>
-                        {study.radiologist && (
+                        {study.performed_by_name && (
                           <div>
-                            <span className="font-medium text-sm">Radiólogo:</span>
-                            <span className="text-sm text-gray-700 ml-2">{study.radiologist}</span>
+                            <span className="font-medium text-sm">Realizado por:</span>
+                            <span className="text-sm text-gray-700 ml-2">
+                              {study.performed_by_name} ({study.performed_by_dni})
+                            </span>
                           </div>
                         )}
                         {study.image_url && (
