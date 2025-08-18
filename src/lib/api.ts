@@ -299,6 +299,10 @@ export async function getCurrentDoctor(): Promise<Doctor> {
   return apiCall<Doctor>('/doctor/me')
 }
 
+export async function getCurrentPolice(): Promise<PoliceUser> {
+  return apiCall<PoliceUser>('/police/me')
+}
+
 // API functions for patients
 export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
 export type Gender = 'male' | 'female'

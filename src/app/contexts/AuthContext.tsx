@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User as FirebaseUser, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { auth } from '../firebase/config'
-import { getCurrentUser, getCurrentDoctor, Doctor, User as SystemUser } from '../../lib/api'
+import { getCurrentUser, getCurrentDoctor, getCurrentPolice, Doctor, User as SystemUser, PoliceUser } from '../../lib/api'
 import { handleAuthError } from '../../lib/auth-utils'
 import { useRouter } from 'next/navigation'
 
@@ -11,6 +11,7 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null
   systemUser: SystemUser | null
   doctor: Doctor | null
+  police: PoliceUser | null
   loading: boolean
   logout: () => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
   const [systemUser, setSystemUser] = useState<SystemUser | null>(null)
   const [doctor, setDoctor] = useState<Doctor | null>(null)
+  const [police, setPolice] = useState<PoliceUser | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   
@@ -38,11 +40,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setSystemUser(userData)
             console.log('User data fetched from new system:', userData)
             
-            // If user is a doctor, also maintain legacy compatibility
+            // Handle role-specific data
             if (userData.role === 'doctor') {
               try {
                 const doctorData = await getCurrentDoctor()
                 setDoctor(doctorData)
+                setPolice(null)
               } catch (doctorError) {
                 console.warn('Could not fetch legacy doctor data:', doctorError)
                 // Create a compatible doctor object from system user
@@ -53,9 +56,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   enabled: userData.enabled,
                   is_admin: userData.is_admin
                 })
+                setPolice(null)
+              }
+            } else if (userData.role === 'police') {
+              try {
+                const policeData = await getCurrentPolice()
+                setPolice(policeData)
+                setDoctor(null)
+              } catch (policeError) {
+                console.warn('Could not fetch police data:', policeError)
+                setPolice(null)
+                setDoctor(null)
               }
             } else {
               setDoctor(null)
+              setPolice(null)
             }
           } catch (userError) {
             console.warn('New user system not available, falling back to legacy:', userError)
@@ -64,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
               const doctorData = await getCurrentDoctor()
               setDoctor(doctorData)
+              setPolice(null)
               
               // Create a system user object for compatibility
               setSystemUser({
@@ -82,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               console.error('Error fetching doctor data:', doctorError)
               await handleAuthError(doctorError)
               setDoctor(null)
+              setPolice(null)
               setSystemUser(null)
             }
           }
@@ -90,10 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await handleAuthError(error)
           setSystemUser(null)
           setDoctor(null)
+          setPolice(null)
         }
       } else {
         setSystemUser(null)
         setDoctor(null)
+        setPolice(null)
       }
       
       setTimeout(() => {
@@ -130,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFirebaseUser(null)
       setSystemUser(null)
       setDoctor(null)
+      setPolice(null)
       router.push('/login')
     } catch (error) {
       console.error('Error signing out:', error)
@@ -140,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     firebaseUser,
     systemUser,
     doctor,
+    police,
     loading,
     logout,
     signIn,

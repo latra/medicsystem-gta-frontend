@@ -41,6 +41,9 @@ export default function RegistrationForm() {
   const [generatedPassword, setGeneratedPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Dynamic theme based on user type
+  const themeColor = formData.userType === 'police' ? '#810000' : '#004e81'
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
     
@@ -166,16 +169,33 @@ export default function RegistrationForm() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <img
-            className="mx-auto h-24 w-auto"
-            src="/hosp-logo.png"
-            alt="Hospital General de Real"
-          />
-          <img
-            className="mx-auto h-12 w-auto"
-            src="/hosp-title.png"
-            alt="Hospital General de Real"
-          />
+          {formData.userType === 'police' ? (
+            <>
+              <img
+                className="mx-auto h-24 w-auto"
+                src="/policia.png"
+                alt="Policía Nacional"
+              />
+              <img
+                className="mx-auto h-12 w-auto"
+                src="/police-title.png"
+                alt="Policía Nacional"
+              />
+            </>
+          ) : (
+            <>
+              <img
+                className="mx-auto h-24 w-auto"
+                src="/hosp-logo.png"
+                alt="Hospital General de Real"
+              />
+              <img
+                className="mx-auto h-12 w-auto"
+                src="/hosp-title.png"
+                alt="Hospital General de Real"
+              />
+            </>
+          )}
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Registro de Usuario
           </h2>
@@ -198,7 +218,8 @@ export default function RegistrationForm() {
                   value="doctor"
                   checked={formData.userType === 'doctor'}
                   onChange={handleInputChange}
-                  className="mr-2 text-hospital-blue focus:ring-hospital-blue"
+                  className="mr-2"
+                  style={{ accentColor: themeColor }}
                 />
                 <span className="text-sm font-medium text-gray-700">Médico</span>
               </label>
@@ -209,7 +230,8 @@ export default function RegistrationForm() {
                   value="police"
                   checked={formData.userType === 'police'}
                   onChange={handleInputChange}
-                  className="mr-2 text-hospital-blue focus:ring-hospital-blue"
+                  className="mr-2"
+                  style={{ accentColor: themeColor }}
                 />
                 <span className="text-sm font-medium text-gray-700">Policía</span>
               </label>
@@ -487,7 +509,8 @@ export default function RegistrationForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-hospital-blue hover:bg-hospital-blue/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-hospital-blue disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: themeColor, outlineColor: themeColor }}
             >
               {loading ? (
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
