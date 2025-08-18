@@ -2,12 +2,12 @@ import { initializeApp } from '@firebase/app';
 import { getAuth } from '@firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDEENgDXYMxIgTPwEFbyRhw8z9JKd3BP_o",
-  authDomain: "real-hospital-app.firebaseapp.com",
-  projectId: "real-hospital-app",
-  storageBucket: "real-hospital-app.firebasestorage.app",
-  messagingSenderId: "1089927476854",
-  appId: "1:1089927476854:web:dd6373267ceeefcfcdd157"
+  apiKey: "AIzaSyDH8tf6cg6OoRTbz62Wpipa2ygAHB5d3SY",
+  authDomain: "medicalapp-dev-512ac.firebaseapp.com",
+  projectId: "medicalapp-dev-512ac",
+  storageBucket: "medicalapp-dev-512ac.firebasestorage.app",
+  messagingSenderId: "850416043098",
+  appId: "1:850416043098:web:3ef20ddd27a28ed9778463"
 };
 
 // Initialize Firebase

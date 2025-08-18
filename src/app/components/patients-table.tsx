@@ -1,19 +1,19 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { getPatients, Patient } from '../../lib/api'
-import { ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { getPatients, PatientSummary } from '../../lib/api'
+import { ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 
 interface PatientsTableProps {
-  onPatientDetails: (patient: Patient) => void
+  onPatientDetails: (patient: PatientSummary) => void
   refreshTrigger?: number
-  onPatientDelete: (patient: Patient) => void
+  onPatientDelete: (patient: PatientSummary) => void
 }
 
 export default function PatientsTable({ onPatientDetails, refreshTrigger, onPatientDelete }: PatientsTableProps) {
   const { user, loading: authLoading } = useAuth()
-  const [patients, setPatients] = useState<Patient[]>([])
+  const [patients, setPatients] = useState<PatientSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -70,7 +70,8 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
     const term = searchTerm.toLowerCase()
     return patients.filter(patient => 
       patient.name.toLowerCase().includes(term) ||
-      patient.dni.toLowerCase().includes(term)
+      patient.dni.toLowerCase().includes(term) ||
+      patient.blood_type.toLowerCase().includes(term)
     )
   }, [patients, searchTerm])
 
@@ -87,6 +88,26 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
   const handleSearch = (value: string) => {
     setSearchTerm(value)
     setCurrentPage(1) // Reset to first page when searching
+  }
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Sin visitas'
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  }
+
+  const formatSex = (sex: string) => {
+    return sex === 'male' ? 'M' : 'F'
+  }
+
+  const formatAllergies = (allergies: string[]) => {
+    if (allergies.length === 0) return 'Ninguna'
+    if (allergies.length === 1) return allergies[0]
+    return `${allergies[0]} +${allergies.length - 1}`
   }
 
   // Show loading while auth is being resolved
@@ -147,12 +168,15 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
               </div>
               <input
                 type="text"
-                placeholder="Buscar por nombre o DNI..."
+                placeholder="Buscar por nombre, DNI o tipo de sangre..."
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] sm:text-sm"
               />
             </div>
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            Total: <span className="font-medium ml-1">{filteredPatients.length}</span> pacientes
           </div>
         </div>
       </div>
@@ -163,10 +187,22 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nombre
+                Paciente
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 DNI
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Edad/Sexo
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Tipo Sangre
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Alergias Críticas
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Última Visita
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
@@ -176,20 +212,37 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
           <tbody className="bg-white divide-y divide-gray-200">
             {currentPatients.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                   {searchTerm ? 'No se encontraron pacientes con los criterios de búsqueda' : 'No hay pacientes registrados'}
                 </td>
               </tr>
             ) : (
               currentPatients.map((patient) => (
                 <tr key={patient.dni} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {patient.name}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {patient.name}
+                        </div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {patient.dni}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {patient.age} años • {formatSex(patient.sex)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                      {patient.blood_type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(patient.last_visit)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex space-x-3">
                       <button
                         onClick={() => {
@@ -198,7 +251,7 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
                         }}
                         className="text-hospital-blue hover:text-hospital-blue/80 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4fbbeb]"
                       >
-                        Más detalles
+                        Ver detalles
                       </button>
                       <button
                         onClick={() => onPatientDelete(patient)}
@@ -208,7 +261,6 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
                       </button>
                     </div>
                   </td>
-                  
                 </tr>
               ))
             )}
