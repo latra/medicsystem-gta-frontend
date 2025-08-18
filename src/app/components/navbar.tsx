@@ -4,16 +4,22 @@ import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 
-const navigationLogged = [
-    { name: 'Nuestro Equipo', href: '/team', current: false },
+// Navigation items for doctors (medical sections)
+const doctorNavigation = [
+  { name: 'Nuestro Equipo', href: '/team', current: false },
   { name: 'Pacientes', href: '/patients', current: false },
   { name: 'Admisiones', href: '/admissions', current: false },
 ]
 
-const navigation = [
-    { name: 'Nuestro Equipo', href: '/team', current: false },
-    
-  ]
+// Navigation items for police and other users
+const generalNavigation = [
+  { name: 'Nuestro Equipo', href: '/team', current: false },
+]
+
+// Navigation for non-authenticated users
+const publicNavigation = [
+  { name: 'Nuestro Equipo', href: '/team', current: false },
+]
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -22,14 +28,27 @@ function classNames(...classes: string[]) {
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, doctor, logout } = useAuth();
+  const { user, systemUser, doctor, logout } = useAuth();
 
-  const navigationWithCurrent = navigation.map(item => ({
-    ...item,
-    current: pathname === item.href
-  }))
+  // Determine which navigation to show based on user role
+  const getNavigationItems = () => {
+    if (!user) {
+      return publicNavigation
+    }
+    
+    // Check if user is a doctor (either from systemUser or legacy doctor)
+    const isDoctor = systemUser?.role === 'doctor' || doctor
+    
+    if (isDoctor) {
+      return doctorNavigation
+    }
+    
+    // For police and other authenticated users
+    return generalNavigation
+  }
 
-  const navigationLoggedWithCurrent = navigationLogged.map(item => ({
+  const currentNavigation = getNavigationItems()
+  const navigationWithCurrent = currentNavigation.map(item => ({
     ...item,
     current: pathname === item.href
   }))
@@ -67,19 +86,7 @@ export default function Navbar() {
             </div>
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
-                {user ? navigationLoggedWithCurrent.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    aria-current={item.current ? 'page' : undefined}
-                    className={classNames(
-                      item.current ? 'bg-hospital-blue/80 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
-                      'rounded-md px-3 py-2 text-md font-medium',
-                    )}
-                  >
-                    {item.name}
-                  </a>
-                )) : navigationWithCurrent.map((item) => (
+                {navigationWithCurrent.map((item) => (
                   <a
                     key={item.name}
                     href={item.href}

@@ -1,48 +1,103 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { User, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { User as FirebaseUser, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { auth } from '../firebase/config'
-import { getCurrentDoctor, Doctor } from '../../lib/api'
+import { getCurrentUser, getCurrentDoctor, Doctor, User as SystemUser } from '../../lib/api'
 import { handleAuthError } from '../../lib/auth-utils'
 import { useRouter } from 'next/navigation'
 
 interface AuthContextType {
-  user: User | null
+  firebaseUser: FirebaseUser | null
+  systemUser: SystemUser | null
   doctor: Doctor | null
   loading: boolean
   logout: () => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
+  // Legacy compatibility
+  user: FirebaseUser | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
+  const [systemUser, setSystemUser] = useState<SystemUser | null>(null)
   const [doctor, setDoctor] = useState<Doctor | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Get doctor data from API
-          const doctorData = await getCurrentDoctor()
-          setDoctor(doctorData)
+          // Try new system first
+          try {
+            const userData = await getCurrentUser()
+            setSystemUser(userData)
+            console.log('User data fetched from new system:', userData)
+            
+            // If user is a doctor, also maintain legacy compatibility
+            if (userData.role === 'doctor') {
+              try {
+                const doctorData = await getCurrentDoctor()
+                setDoctor(doctorData)
+              } catch (doctorError) {
+                console.warn('Could not fetch legacy doctor data:', doctorError)
+                // Create a compatible doctor object from system user
+                setDoctor({
+                  name: userData.name,
+                  dni: userData.dni,
+                  email: userData.email,
+                  enabled: userData.enabled,
+                  is_admin: userData.is_admin
+                })
+              }
+            } else {
+              setDoctor(null)
+            }
+          } catch (userError) {
+            console.warn('New user system not available, falling back to legacy:', userError)
+            
+            // Fallback to legacy doctor system
+            try {
+              const doctorData = await getCurrentDoctor()
+              setDoctor(doctorData)
+              
+              // Create a system user object for compatibility
+              setSystemUser({
+                name: doctorData.name,
+                dni: doctorData.dni,
+                email: doctorData.email,
+                user_id: user.uid,
+                firebase_uid: user.uid,
+                role: 'doctor',
+                enabled: doctorData.enabled,
+                is_admin: doctorData.is_admin || false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+            } catch (doctorError) {
+              console.error('Error fetching doctor data:', doctorError)
+              await handleAuthError(doctorError)
+              setDoctor(null)
+              setSystemUser(null)
+            }
+          }
         } catch (error: any) {
-          console.error('Error fetching doctor data:', error)
-          
-          // Handle authentication errors
+          console.error('Error fetching user data:', error)
           await handleAuthError(error)
+          setSystemUser(null)
           setDoctor(null)
         }
       } else {
+        setSystemUser(null)
         setDoctor(null)
       }
       
       setTimeout(() => {
-        setUser(user)
+        setFirebaseUser(user)
         setLoading(false)
       }, 500)
     })
@@ -72,6 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth)
+      setFirebaseUser(null)
+      setSystemUser(null)
       setDoctor(null)
       router.push('/login')
     } catch (error) {
@@ -80,12 +137,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = {
-    user,
+    firebaseUser,
+    systemUser,
     doctor,
     loading,
     logout,
     signIn,
-    signUp
+    signUp,
+    // Legacy compatibility
+    user: firebaseUser
   }
 
   return (
