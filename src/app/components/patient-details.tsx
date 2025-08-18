@@ -1,6 +1,6 @@
 'use client'
 
-import { Patient, PatientComplete, PatientSummary, VisitSummary, getPatientComplete, getPatientVisits, updatePatient, updatePatientMedicalHistory, addBloodAnalysis, addRadiologyStudy, BloodAnalysisCreate, RadiologyStudyCreate, PatientUpdate, PatientMedicalHistoryUpdate } from '../../lib/api'
+import { Patient, PatientComplete, PatientSummary, VisitSummary, getPatientComplete, getPatientVisits, updatePatient, updatePatientMedicalHistory, addBloodAnalysis, addRadiologyStudy, BloodAnalysisCreate, RadiologyStudyCreate, PatientUpdate, PatientMedicalHistoryUpdate, Gender } from '../../lib/api'
 import { XMarkIcon, PencilIcon, CheckIcon, XCircleIcon, ClockIcon, UserIcon, PlusIcon, HeartIcon, DocumentTextIcon, BeakerIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 import VisitDetails from './visit-details'
@@ -49,6 +49,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
         name: completeData.name,
         age: completeData.age,
         phone: completeData.phone || '',
+        discapacity_level: completeData.discapacity_level || 0,
       })
       
       setMedicalHistory({
@@ -217,6 +218,33 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
 
   const handleCreateVisitClose = () => {
     setIsCreateVisitModalOpen(false)
+  }
+
+  const getRandomInRange = (min: number, max: number, decimals: number = 2): number => {
+    const value = Math.random() * (max - min) + min
+    return Number(value.toFixed(decimals))
+  }
+
+  const getNormalValue = (field: string, sex: Gender = 'male'): number => {
+    const ranges = {
+      red_blood_cells: sex === 'male' ? { min: 4.5, max: 5.9, decimals: 2 } : { min: 4.1, max: 5.1, decimals: 2 },
+      hemoglobin: sex === 'male' ? { min: 13.5, max: 17.5, decimals: 1 } : { min: 12.0, max: 15.5, decimals: 1 },
+      hematocrit: sex === 'male' ? { min: 41, max: 53, decimals: 1 } : { min: 36, max: 46, decimals: 1 },
+      platelets: { min: 150000, max: 450000, decimals: 0 },
+      lymphocytes: { min: 20, max: 45, decimals: 1 },
+      glucose: { min: 70, max: 99, decimals: 0 },
+      cholesterol: { min: 150, max: 199, decimals: 0 },
+      urea: { min: 15, max: 50, decimals: 0 },
+      cocaine: { min: 0, max: 0, decimals: 0 },
+      alcohol: { min: 0, max: 0, decimals: 0 },
+      mdma: { min: 0, max: 0, decimals: 0 },
+      fentanyl: { min: 0, max: 0, decimals: 0 }
+    }
+
+    const range = ranges[field as keyof typeof ranges]
+    if (!range) return 0
+
+    return getRandomInRange(range.min, range.max, range.decimals)
   }
 
   const handleVisitCreated = (visitId: string) => {
@@ -420,6 +448,23 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                       {patientComplete.blood_type}
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-black mb-1">Nivel de Discapacidad</label>
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={basicInfo.discapacity_level || ''}
+                        onChange={(e) => setBasicInfo(prev => ({ ...prev, discapacity_level: parseInt(e.target.value) || 0 }))}
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 bg-white px-3 py-2 rounded-md border border-gray-300">
+                        {patientComplete.discapacity_level ? `${patientComplete.discapacity_level}%` : '0%'}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -579,105 +624,511 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                   <h5 className="font-medium mb-4">Agregar Nuevo Análisis de Sangre</h5>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Glóbulos Rojos (millones/μL) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Glóbulos Rojos (millones/μL) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-48 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Valores normales:<br/>
+                              Hombres: 4,5 – 5,9<br/>
+                              Mujeres: 4,1 – 5,1
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            red_blood_cells: getNormalValue('red_blood_cells', patientComplete?.sex) 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
+                        value={newBloodAnalysis?.red_blood_cells || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, red_blood_cells: parseFloat(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Hemoglobina (g/dL) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Hemoglobina (g/dL) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-48 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Valores normales:<br/>
+                              Hombres: 13,5 – 17,5<br/>
+                              Mujeres: 12 – 15,5
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            hemoglobin: getNormalValue('hemoglobin', patientComplete?.sex) 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         step="0.1"
                         min="0"
+                        value={newBloodAnalysis?.hemoglobin || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, hemoglobin: parseFloat(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Hematocrito (%) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Hematocrito (%) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-48 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Valores normales:<br/>
+                              Hombres: 41 – 53%<br/>
+                              Mujeres: 36 – 46%
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            hematocrit: getNormalValue('hematocrit', patientComplete?.sex) 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         step="0.1"
                         min="0"
                         max="100"
+                        value={newBloodAnalysis?.hematocrit || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, hematocrit: parseFloat(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Plaquetas (/μL) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Plaquetas (/μL) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-48 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Valores normales:<br/>
+                              150.000 – 450.000 /μL
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            platelets: getNormalValue('platelets') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         min="0"
+                        value={newBloodAnalysis?.platelets || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, platelets: parseInt(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Linfocitos (%) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Linfocitos (%) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-48 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Valores normales:<br/>
+                              20 – 45% de leucocitos totales
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            lymphocytes: getNormalValue('lymphocytes') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         step="0.1"
                         min="0"
                         max="100"
+                        value={newBloodAnalysis?.lymphocytes || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, lymphocytes: parseFloat(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Glucosa (mg/dL) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Glucosa (mg/dL) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Valores:<br/>
+                              Normal: 70 – 99 mg/dL<br/>
+                              Pre-diabetes: 100 – 125 mg/dL<br/>
+                              Diabetes: ≥ 126 mg/dL
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            glucose: getNormalValue('glucose') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         min="0"
+                        value={newBloodAnalysis?.glucose || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, glucose: parseInt(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Colesterol (mg/dL) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Colesterol (mg/dL) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-48 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Valores:<br/>
+                              Deseable: &lt; 200 mg/dL<br/>
+                              Límite: 200 – 239 mg/dL<br/>
+                              Alto: ≥ 240 mg/dL
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            cholesterol: getNormalValue('cholesterol') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         min="0"
+                        value={newBloodAnalysis?.cholesterol || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, cholesterol: parseInt(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Urea (mg/dL) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Urea (mg/dL) *
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Normal: 15 – 50 mg/dL<br/>
+                              (depende de dieta y función renal)
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            urea: getNormalValue('urea') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                       <input
                         type="number"
                         min="0"
+                        value={newBloodAnalysis?.urea || ''}
                         onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, urea: parseInt(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Cocaína (ng/mL)
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Normal: 0 ng/mL<br/>
+                              Umbral positivo: ≥ 10–20 ng/mL<br/>
+                              (para metabolitos benzoylecgonina)
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            cocaine: getNormalValue('cocaine') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newBloodAnalysis?.cocaine || ''}
+                        onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, cocaine: parseFloat(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Alcohol (mg/dL)
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Normal: 0 mg/dL<br/>
+                              Límite legal (España): 500 mg/dL<br/>
+                              Potencialmente letal: 3000-4000 mg/dL
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            alcohol: getNormalValue('alcohol') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newBloodAnalysis?.alcohol || ''}
+                        onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, alcohol: parseFloat(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            MDMA (ng/mL)
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Normal: 0 ng/mL<br/>
+                              Positivo: ≥ 25–50 ng/mL
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            mdma: getNormalValue('mdma') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newBloodAnalysis?.mdma || ''}
+                        onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, mdma: parseFloat(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Fentanilo (ng/mL)
+                          </label>
+                          <div className="group relative">
+                            <div className="cursor-help">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 text-white rounded shadow-lg">
+                              Normal: 0 ng/mL<br/>
+                              Terapéutico: 0,6 – 3 ng/mL<br/>
+                              Tóxico/letal: ≥ 10 ng/mL
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBloodAnalysis(prev => ({ 
+                            ...prev, 
+                            fentanyl: getNormalValue('fentanyl') 
+                          }))}
+                          className="text-xs text-hospital-blue hover:text-hospital-blue/80"
+                          title="Establecer valor normal"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newBloodAnalysis?.fentanyl || ''}
+                        onChange={(e) => setNewBloodAnalysis(prev => ({ ...prev, fentanyl: parseFloat(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       />
                     </div>
                     <div className="md:col-span-4">
@@ -730,32 +1181,177 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                           {formatDate(analysis.date_performed)}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div className="space-y-4">
+                        {/* Parámetros hematológicos */}
                         <div>
-                          <span className="font-medium">Glóbulos Rojos:</span> {analysis.red_blood_cells} millones/μL
+                          <h6 className="font-medium text-gray-900 mb-2">Parámetros hematológicos</h6>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div>
+                              <div className="font-medium">Glóbulos Rojos</div>
+                              <div className={`${
+                                patientComplete.sex === 'male' 
+                                  ? (analysis.red_blood_cells >= 4.5 && analysis.red_blood_cells <= 5.9 ? 'text-green-600' : 'text-red-600')
+                                  : (analysis.red_blood_cells >= 4.1 && analysis.red_blood_cells <= 5.1 ? 'text-green-600' : 'text-red-600')
+                              }`}>
+                                {analysis.red_blood_cells} millones/μL
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Normal: {patientComplete.sex === 'male' ? '4,5 – 5,9' : '4,1 – 5,1'}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">Hemoglobina</div>
+                              <div className={`${
+                                patientComplete.sex === 'male'
+                                  ? (analysis.hemoglobin >= 13.5 && analysis.hemoglobin <= 17.5 ? 'text-green-600' : 'text-red-600')
+                                  : (analysis.hemoglobin >= 12 && analysis.hemoglobin <= 15.5 ? 'text-green-600' : 'text-red-600')
+                              }`}>
+                                {analysis.hemoglobin} g/dL
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Normal: {patientComplete.sex === 'male' ? '13,5 – 17,5' : '12 – 15,5'}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">Hematocrito</div>
+                              <div className={`${
+                                patientComplete.sex === 'male'
+                                  ? (analysis.hematocrit >= 41 && analysis.hematocrit <= 53 ? 'text-green-600' : 'text-red-600')
+                                  : (analysis.hematocrit >= 36 && analysis.hematocrit <= 46 ? 'text-green-600' : 'text-red-600')
+                              }`}>
+                                {analysis.hematocrit}%
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Normal: {patientComplete.sex === 'male' ? '41 – 53' : '36 – 46'}%
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">Plaquetas</div>
+                              <div className={`${
+                                analysis.platelets >= 150000 && analysis.platelets <= 450000 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {analysis.platelets}/μL
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Normal: 150.000 – 450.000
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">Linfocitos</div>
+                              <div className={`${
+                                analysis.lymphocytes >= 20 && analysis.lymphocytes <= 45 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {analysis.lymphocytes}%
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Normal: 20 – 45%
+                              </div>
+                            </div>
+                          </div>
                         </div>
+
+                        {/* Bioquímica básica */}
                         <div>
-                          <span className="font-medium">Hemoglobina:</span> {analysis.hemoglobin} g/dL
+                          <h6 className="font-medium text-gray-900 mb-2">Bioquímica básica</h6>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                            <div>
+                              <div className="font-medium">Glucosa</div>
+                              <div className={`${
+                                analysis.glucose < 100 ? 'text-green-600' 
+                                : analysis.glucose <= 125 ? 'text-yellow-600'
+                                : 'text-red-600'
+                              }`}>
+                                {analysis.glucose} mg/dL
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Normal: 70 – 99
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">Colesterol</div>
+                              <div className={`${
+                                analysis.cholesterol < 200 ? 'text-green-600'
+                                : analysis.cholesterol <= 239 ? 'text-yellow-600'
+                                : 'text-red-600'
+                              }`}>
+                                {analysis.cholesterol} mg/dL
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Deseable: &lt; 200
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">Urea</div>
+                              <div className={`${
+                                analysis.urea >= 15 && analysis.urea <= 50 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {analysis.urea} mg/dL
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Normal: 15 – 50
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-medium">Hematocrito:</span> {analysis.hematocrit}%
-                        </div>
-                        <div>
-                          <span className="font-medium">Plaquetas:</span> {analysis.platelets}/μL
-                        </div>
-                        <div>
-                          <span className="font-medium">Linfocitos:</span> {analysis.lymphocytes}%
-                        </div>
-                        <div>
-                          <span className="font-medium">Glucosa:</span> {analysis.glucose} mg/dL
-                        </div>
-                        <div>
-                          <span className="font-medium">Colesterol:</span> {analysis.cholesterol} mg/dL
-                        </div>
-                        <div>
-                          <span className="font-medium">Urea:</span> {analysis.urea} mg/dL
-                        </div>
+
+                        {/* Drogas en sangre */}
+                        {(analysis.cocaine > 0 || analysis.alcohol > 0 || analysis.mdma > 0 || analysis.fentanyl > 0) && (
+                          <div>
+                            <h6 className="font-medium text-gray-900 mb-2">Drogas en sangre</h6>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              {analysis.cocaine > 0 && (
+                                <div>
+                                  <div className="font-medium">Cocaína</div>
+                                  <div className="text-red-600">
+                                    {analysis.cocaine} ng/mL
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Positivo: ≥ 10–20 ng/mL
+                                  </div>
+                                </div>
+                              )}
+                              {analysis.alcohol > 0 && (
+                                <div>
+                                  <div className="font-medium">Alcohol</div>
+                                  <div className={`${
+                                    analysis.alcohol < 500 ? 'text-yellow-600' : 'text-red-600'
+                                  }`}>
+                                    {analysis.alcohol} mg/dL
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Límite legal: 500 mg/dL
+                                  </div>
+                                </div>
+                              )}
+                              {analysis.mdma > 0 && (
+                                <div>
+                                  <div className="font-medium">MDMA</div>
+                                  <div className="text-red-600">
+                                    {analysis.mdma} ng/mL
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Positivo: ≥ 25–50 ng/mL
+                                  </div>
+                                </div>
+                              )}
+                              {analysis.fentanyl > 0 && (
+                                <div>
+                                  <div className="font-medium">Fentanilo</div>
+                                  <div className={`${
+                                    analysis.fentanyl <= 3 ? 'text-yellow-600' : 'text-red-600'
+                                  }`}>
+                                    {analysis.fentanyl} ng/mL
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Terapéutico: 0,6 – 3 ng/mL
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
+
                       {analysis.notes && (
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <span className="font-medium text-sm">Notas:</span>

@@ -138,6 +138,7 @@ export interface PatientUpdate {
   name?: string
   age?: number
   phone?: string
+  discapacity_level?: number
 }
 
 export interface BloodAnalysis {
@@ -214,6 +215,7 @@ export interface PatientComplete {
   sex: Gender
   phone?: string
   blood_type: BloodType
+  discapacity_level?: number
   created_at: string
   updated_at: string
   medical_history: MedicalHistory
