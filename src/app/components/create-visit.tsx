@@ -34,7 +34,6 @@ const patientStatuses = [
   { value: 'conscious', label: 'Consciente' },
   { value: 'unconscious', label: 'Inconsciente' },
   { value: 'in_danger', label: 'En Peligro' },
-  { value: 'stable', label: 'Estable' },
   { value: 'critical', label: 'Crítico' }
 ]
 
