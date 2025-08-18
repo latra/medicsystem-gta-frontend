@@ -286,6 +286,21 @@ export async function addRadiologyStudy(dni: string, studyData: RadiologyStudyCr
   })
 }
 
+// New functions for visit-related blood analysis and radiology studies
+export async function addBloodAnalysisToVisit(visitId: string, analysisData: BloodAnalysisCreate): Promise<BloodAnalysis> {
+  return apiCall<BloodAnalysis>(`/visit/${visitId}/blood-analysis`, {
+    method: 'POST',
+    body: JSON.stringify(analysisData)
+  })
+}
+
+export async function addRadiologyStudyToVisit(visitId: string, studyData: RadiologyStudyCreate): Promise<RadiologyStudy> {
+  return apiCall<RadiologyStudy>(`/visit/${visitId}/radiology-study`, {
+    method: 'POST',
+    body: JSON.stringify(studyData)
+  })
+}
+
 // API functions for patient visits
 export type VisitStatus = 'admission' | 'discharge'
 
@@ -335,6 +350,51 @@ export interface Visit {
   notes?: string
 }
 
+export interface VisitComplete {
+  visit_id: string
+  patient_dni: string
+  reason: string
+  attention_place: AttentionType
+  attention_details?: string
+  location: string
+  visit_status: VisitStatus
+  triage?: Triage
+  priority_level: number
+  attending_doctor_dni: string
+  referring_doctor_dni?: string
+  blood_analyses: BloodAnalysis[]
+  radiology_studies: RadiologyStudy[]
+  discharge_summary?: string
+  discharge_instructions?: string
+  follow_up_required: boolean
+  follow_up_date?: string
+  follow_up_specialty?: string
+  created_at: string
+  updated_at: string
+  admission_date: string
+  discharge_date?: string
+  created_by?: string
+  last_updated_by?: string
+  is_completed: boolean
+  length_of_stay_hours?: number
+  // For compatibility with existing code
+  date_of_admission?: string
+  date_of_discharge?: string
+  admission_heart_rate?: number
+  admission_blood_pressure?: number
+  admission_temperature?: number
+  admission_oxygen_saturation?: number
+  diagnosis?: string
+  tests?: string
+  treatment?: string
+  evolution?: string
+  recommendations?: string
+  medication?: string
+  specialist_follow_up?: string
+  additional_observations?: string
+  notes?: string
+}
+
 export interface VisitBase {
   patient_dni: string
   reason: string
@@ -373,6 +433,10 @@ export async function getPatientVisits(patientDni: string): Promise<VisitSummary
 
 export async function getVisitDetails(visitId: string): Promise<Visit> {
   return apiCall<Visit>(`/visit/info/${visitId}`)
+}
+
+export async function getVisitComplete(visitId: string): Promise<VisitComplete> {
+  return apiCall<VisitComplete>(`/visit/complete/${visitId}`)
 }
 
 export async function updateVisit(visitId: string, visitData: VisitUpdate): Promise<Visit> {

@@ -212,6 +212,12 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
     fetchVisits()
   }
 
+  const handleStudyAdded = () => {
+    // When a study is added from a visit, refresh both patient data and visits
+    fetchPatientComplete()
+    fetchVisits()
+  }
+
   const handleCreateVisit = () => {
     setIsCreateVisitModalOpen(true)
   }
@@ -1618,6 +1624,7 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
         isOpen={isVisitModalOpen}
         onClose={handleVisitModalClose}
         onVisitUpdate={handleVisitUpdate}
+        onStudyAdded={handleStudyAdded}
         autoEditMode={isNewlyCreatedVisit}
       />
 
