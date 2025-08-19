@@ -458,9 +458,9 @@ export default function VisitDetails({ visitId, isOpen, onClose, onVisitUpdate, 
                     <label className="block text-xs font-medium text-gray-700 mb-1">Presión Arterial</label>
                     {isEditing ? (
                       <input
-                        type="number"
+                        type="text"
                         value={currentVisit.admission_blood_pressure || ''}
-                        onChange={(e) => setEditedVisit(prev => prev ? { ...prev, admission_blood_pressure: e.target.value ? parseInt(e.target.value) : null } : null)}
+                        onChange={(e) => setEditedVisit(prev => prev ? { ...prev, admission_blood_pressure: e.target.value ? e.target.value : null } : null)}
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm"
                         placeholder="mmHg"
                       />
