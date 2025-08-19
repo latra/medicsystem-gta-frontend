@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { useRouter, useParams } from 'next/navigation'
-import Navbar from '../../components/navbar'
-import { getExam, type Exam } from '../../../lib/api'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Navbar from '../components/navbar'
+import { getExam, type Exam } from '../../lib/api'
 import { ArrowLeftIcon, PencilIcon, ClockIcon, CalendarIcon } from '@heroicons/react/24/outline'
 
-export default function ExamDetailPage() {
+function ExamDetailContent() {
   const { user, systemUser, doctor, police } = useAuth()
   const router = useRouter()
-  const params = useParams()
-  const examId = params?.id as string
+  const searchParams = useSearchParams()
+  const examId = searchParams.get('examId')
   
   const [exam, setExam] = useState<Exam | null>(null)
   const [loading, setLoading] = useState(true)
@@ -166,7 +166,7 @@ export default function ExamDetailPage() {
                     </div>
                     
                     <button
-                      onClick={() => router.push(`/exams/${exam.exam_id}/edit`)}
+                      onClick={() => router.push(`/exams/exam-edit?examId=${exam.exam_id}`)}
                       className="flex items-center px-4 py-2 text-white rounded-md hover:opacity-80 transition-colors"
                       style={{ backgroundColor: themeColor }}
                     >
@@ -279,5 +279,17 @@ export default function ExamDetailPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function ExamDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <ExamDetailContent />
+    </Suspense>
   )
 }

@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '../../../contexts/AuthContext'
-import { useRouter, useParams } from 'next/navigation'
-import Navbar from '../../../components/navbar'
-import { getExam, updateExam, type Exam, type ExamCreate, type ExamCategory, type ExamQuestion } from '../../../../lib/api'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Navbar from '../components/navbar'
+import { getExam, updateExam, type Exam, type ExamCreate, type ExamCategory, type ExamQuestion } from '../../lib/api'
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 
-export default function EditExamPage() {
+function EditExamContent() {
   const { user, systemUser, doctor, police } = useAuth()
   const router = useRouter()
-  const params = useParams()
-  const examId = params?.id as string
+  const searchParams = useSearchParams()
+  const examId = searchParams.get('examId')
   
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -214,11 +214,16 @@ export default function EditExamPage() {
       return
     }
 
+    if (!examId) {
+      setError('ID del examen no encontrado')
+      return
+    }
+
     setLoading(true)
 
     try {
       await updateExam(examId, examData)
-      router.push(`/exams/${examId}`)
+      router.push(`/exams/exam-details?examId=${examId}`)
     } catch (err) {
       console.error('Error updating exam:', err)
       setError('Error al actualizar el examen. Inténtelo de nuevo.')
@@ -247,7 +252,7 @@ export default function EditExamPage() {
           {/* Header */}
           <div className="mb-8">
             <button
-              onClick={() => router.push(`/exams/${examId}`)}
+              onClick={() => examId ? router.push(`/exams/exam-details?examId=${examId}`) : router.push('/exams')}
               className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
             >
               <ArrowLeftIcon className="h-5 w-5 mr-2" />
@@ -476,7 +481,7 @@ export default function EditExamPage() {
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={() => router.push(`/exams/${examId}`)}
+                onClick={() => examId ? router.push(`/exams/exam-details?examId=${examId}`) : router.push('/exams')}
                 className="px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 Cancelar
@@ -504,5 +509,17 @@ export default function EditExamPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function EditExamPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <EditExamContent />
+    </Suspense>
   )
 }
