@@ -24,10 +24,12 @@ export default function CreateExamPage() {
     description: '',
     categories: [
       {
+        category_id: crypto.randomUUID(),
         name: '',
         description: '',
         questions: [
           {
+            question_id: crypto.randomUUID(),
             question: '',
             options: ['', '', '', ''],
             correct_option: ''
@@ -101,10 +103,12 @@ export default function CreateExamPage() {
       categories: [
         ...prev.categories,
         {
+          category_id: crypto.randomUUID(),
           name: '',
           description: '',
           questions: [
             {
+              question_id: crypto.randomUUID(),
               question: '',
               options: ['', '', '', ''],
               correct_option: ''
@@ -132,6 +136,7 @@ export default function CreateExamPage() {
               questions: [
                 ...cat.questions,
                 {
+                  question_id: crypto.randomUUID(),
                   question: '',
                   options: ['', '', '', ''],
                   correct_option: ''

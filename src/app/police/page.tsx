@@ -189,7 +189,7 @@ export default function PoliceVerificationPage() {
                   onChange={(e) => setDni(e.target.value)}
                   placeholder="Ingrese DNI"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                  style={{ focusRingColor: themeColor }}
+                  style={{ '--focus-ring-color': themeColor } as React.CSSProperties}
                 />
               </div>
 
@@ -203,7 +203,7 @@ export default function PoliceVerificationPage() {
                   value={selectedExamId}
                   onChange={(e) => setSelectedExamId(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                  style={{ focusRingColor: themeColor }}
+                  style={{ '--focus-ring-color': themeColor } as React.CSSProperties}
                 >
                   <option value="">Selecciona un tipo de examen</option>
                   {exams.map((exam) => (

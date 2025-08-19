@@ -1,6 +1,6 @@
 'use client'
 
-import { createVisit, type CreateVisitData } from '../../lib/api'
+import { createVisit, type VisitBase } from '../../lib/api'
 import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
@@ -46,7 +46,7 @@ const triageLevels = [
 ]
 
 export default function CreateVisit({ patientDni, patientName, isOpen, onClose, onVisitCreated }: CreateVisitProps) {
-  const [formData, setFormData] = useState<CreateVisitData>({
+  const [formData, setFormData] = useState<VisitBase>({
     patient_dni: patientDni,
     reason: '',
     attention_place: 'street',

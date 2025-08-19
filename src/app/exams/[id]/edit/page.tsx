@@ -122,10 +122,12 @@ export default function EditExamPage() {
       categories: [
         ...prev.categories,
         {
+          category_id: crypto.randomUUID(),
           name: '',
           description: '',
           questions: [
             {
+              question_id: crypto.randomUUID(),
               question: '',
               options: ['', '', '', ''],
               correct_option: ''
@@ -153,6 +155,7 @@ export default function EditExamPage() {
               questions: [
                 ...cat.questions,
                 {
+                  question_id: crypto.randomUUID(),
                   question: '',
                   options: ['', '', '', ''],
                   correct_option: ''
