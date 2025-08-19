@@ -12,7 +12,7 @@ interface PatientsTableProps {
 }
 
 export default function PatientsTable({ onPatientDetails, refreshTrigger, onPatientDelete }: PatientsTableProps) {
-  const { user, loading: authLoading } = useAuth()
+  const { user, doctor, police, loading: authLoading } = useAuth()
   const [patients, setPatients] = useState<PatientSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -253,12 +253,14 @@ export default function PatientsTable({ onPatientDetails, refreshTrigger, onPati
                       >
                         Ver detalles
                       </button>
-                      <button
-                        onClick={() => onPatientDelete(patient)}
-                        className="text-red-600 hover:text-red-800 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        Eliminar
-                      </button>
+                      {doctor?.is_admin && (
+                        <button
+                          onClick={() => onPatientDelete(patient)}
+                          className="text-red-600 hover:text-red-800 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                          >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

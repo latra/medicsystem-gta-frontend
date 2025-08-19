@@ -805,4 +805,19 @@ export async function submitExamResult(examData: ExamSubmission): Promise<ExamRe
 
 export async function getPatientExamResults(patientDni: string): Promise<PatientExamHistory> {
   return apiCall<PatientExamHistory>(`/exams/patients/${patientDni}/history`)
+}
+
+// Interface for certificate verification (police endpoint)
+export interface CertificateInfo {
+  citizen_dni: string
+  citizen_name: string
+  exam_pass: boolean
+  exam_date: string
+  doctor_dni: string
+  doctor_name: string
+}
+
+// Police certificate verification function
+export async function getCertificate(examId: string, patientDni: string): Promise<CertificateInfo> {
+  return apiCall<CertificateInfo>(`/exams/get_certificate/${examId}/${patientDni}`)
 } 

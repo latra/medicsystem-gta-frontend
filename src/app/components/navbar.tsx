@@ -24,9 +24,16 @@ const generalNavigation = [
   { name: 'Nuestro Equipo', href: '/team', current: false },
 ]
 
+// Navigation items for police users
+const policeNavigation = [
+  { name: 'Nuestro Equipo', href: '/team', current: false },
+  { name: 'Verificación', href: '/police', current: false },
+]
+
 // Navigation items for admin police
 const adminPoliceNavigation = [
   { name: 'Nuestro Equipo', href: '/team', current: false },
+  { name: 'Verificación', href: '/police', current: false },
   { name: 'Exámenes', href: '/exams', current: false },
 ]
 
@@ -73,7 +80,7 @@ export default function Navbar() {
     }
     
     if (isPolice) {
-      return isAdmin ? adminPoliceNavigation : generalNavigation
+      return isAdmin ? adminPoliceNavigation : policeNavigation
     }
     
     // For other authenticated users
