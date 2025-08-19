@@ -685,4 +685,124 @@ export interface PatientAdmitted {
 
 export async function getAdmittedPatients(): Promise<PatientAdmitted[]> {
   return apiCall<PatientAdmitted[]>('/patients/admitted')
+}
+
+// API functions for exam system
+export interface ExamQuestion {
+  question_id: string
+  question: string
+  options: string[]
+  correct_option: string
+}
+
+export interface ExamCategory {
+  category_id: string
+  name: string
+  description: string
+  questions: ExamQuestion[]
+}
+
+export interface ExamCreate {
+  name: string
+  max_error_allowed: number
+  description: string
+  categories: ExamCategory[]
+}
+
+export interface Exam {
+  exam_id: string
+  name: string
+  max_error_allowed: number
+  description: string
+  categories: ExamCategory[]
+  enabled: boolean
+  disabled_by?: string | null
+  created_at: string
+  updated_at: string
+  created_by?: string | null
+  updated_by?: string | null
+}
+
+export async function getExams(): Promise<Exam[]> {
+  return apiCall<Exam[]>('/exams/')
+}
+
+export async function getExam(examId: string): Promise<Exam> {
+  return apiCall<Exam>(`/exams/${examId}`)
+}
+
+export async function createExam(examData: ExamCreate): Promise<Exam> {
+  return apiCall<Exam>('/exams/', {
+    method: 'POST',
+    body: JSON.stringify(examData)
+  })
+}
+
+export async function updateExam(examId: string, examData: ExamCreate): Promise<Exam> {
+  return apiCall<Exam>(`/exams/${examId}`, {
+    method: 'PUT',
+    body: JSON.stringify(examData)
+  })
+}
+
+export async function deleteExam(examId: string): Promise<void> {
+  return apiCall<void>(`/exams/${examId}`, {
+    method: 'DELETE'
+  })
+}
+
+// Interfaces for psychotechnical exam results
+export interface QuestionAnswer {
+  question_id: string
+  selected_option: string
+}
+
+export interface ExamSubmission {
+  exam_id: string
+  patient_dni: string
+  answers: QuestionAnswer[]
+  notes?: string
+  observations?: string
+}
+
+export interface ExamResult {
+  result_id: string
+  exam_id: string
+  exam_name: string
+  patient_dni: string
+  patient_name: string
+  total_questions: number
+  correct_answers: number
+  incorrect_answers: number
+  score_percentage: number
+  status: string
+  is_approved: boolean
+  examiner_dni: string
+  examiner_name: string
+  examiner_role: string
+  notes?: string | null
+  observations?: string | null
+  exam_date: string
+  created_at: string
+}
+
+export interface PatientExamHistory {
+  patient_dni: string
+  patient_name: string
+  exam_results: ExamResult[]
+  total_exams: number
+  passed_exams: number
+  failed_exams: number
+}
+
+// API functions for psychotechnical exam results
+export async function submitExamResult(examData: ExamSubmission): Promise<ExamResult> {
+  return apiCall<ExamResult>('/exams/results', {
+    method: 'POST',
+    body: JSON.stringify(examData)
+  })
+}
+
+export async function getPatientExamResults(patientDni: string): Promise<PatientExamHistory> {
+  return apiCall<PatientExamHistory>(`/exams/patients/${patientDni}/history`)
 } 

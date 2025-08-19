@@ -1,7 +1,7 @@
 'use client'
 
-import { Patient, PatientComplete, PatientSummary, VisitSummary, getPatientComplete, getPatientVisits, updatePatient, updatePatientMedicalHistory, addBloodAnalysis, addRadiologyStudy, BloodAnalysisCreate, RadiologyStudyCreate, PatientUpdate, PatientMedicalHistoryUpdate, Gender } from '../../lib/api'
-import { XMarkIcon, PencilIcon, CheckIcon, XCircleIcon, ClockIcon, UserIcon, PlusIcon, HeartIcon, DocumentTextIcon, BeakerIcon } from '@heroicons/react/24/outline'
+import { Patient, PatientComplete, PatientSummary, VisitSummary, getPatientComplete, getPatientVisits, updatePatient, updatePatientMedicalHistory, addBloodAnalysis, addRadiologyStudy, BloodAnalysisCreate, RadiologyStudyCreate, PatientUpdate, PatientMedicalHistoryUpdate, Gender, getExams, submitExamResult, getPatientExamResults, Exam, ExamSubmission, ExamResult, PatientExamHistory, QuestionAnswer } from '../../lib/api'
+import { XMarkIcon, PencilIcon, CheckIcon, XCircleIcon, ClockIcon, UserIcon, PlusIcon, HeartIcon, DocumentTextIcon, BeakerIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 import VisitDetails from './visit-details'
 import CreateVisit from './create-visit'
@@ -13,7 +13,7 @@ interface PatientDetailsProps {
   onPatientUpdate?: (updatedPatient: PatientSummary) => void
 }
 
-type TabType = 'info' | 'history' | 'medical' | 'blood' | 'radiology'
+type TabType = 'info' | 'history' | 'medical' | 'blood' | 'radiology' | 'psycho'
 
 export default function PatientDetails({ patient, isOpen, onClose, onPatientUpdate }: PatientDetailsProps) {
   const [patientComplete, setPatientComplete] = useState<PatientComplete | null>(null)
@@ -35,6 +35,17 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
   const [newRadiologyStudy, setNewRadiologyStudy] = useState<RadiologyStudyCreate | null>(null)
   const [showBloodAnalysisForm, setShowBloodAnalysisForm] = useState(false)
   const [showRadiologyForm, setShowRadiologyForm] = useState(false)
+
+  // States for psychotechnical exams
+  const [availableExams, setAvailableExams] = useState<Exam[]>([])
+  const [selectedExam, setSelectedExam] = useState<Exam | null>(null)
+  const [examAnswers, setExamAnswers] = useState<QuestionAnswer[]>([])
+  const [examNotes, setExamNotes] = useState('')
+  const [examObservations, setExamObservations] = useState('')
+  const [patientExamHistory, setPatientExamHistory] = useState<PatientExamHistory | null>(null)
+  const [loadingExams, setLoadingExams] = useState(false)
+  const [loadingExamResults, setLoadingExamResults] = useState(false)
+  const [showExamForm, setShowExamForm] = useState(false)
 
   const fetchPatientComplete = async () => {
     if (!patient) return
@@ -83,6 +94,32 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
     }
   }
 
+  const fetchAvailableExams = async () => {
+    setLoadingExams(true)
+    try {
+      const examsData = await getExams()
+      setAvailableExams(examsData.filter(exam => exam.enabled))
+    } catch (error) {
+      console.error('Error fetching available exams:', error)
+    } finally {
+      setLoadingExams(false)
+    }
+  }
+
+  const fetchPatientExamResults = async () => {
+    if (!patient) return
+    
+    setLoadingExamResults(true)
+    try {
+      const historyData = await getPatientExamResults(patient.dni)
+      setPatientExamHistory(historyData)
+    } catch (error) {
+      console.error('Error fetching patient exam results:', error)
+    } finally {
+      setLoadingExamResults(false)
+    }
+  }
+
   useEffect(() => {
     if (patient && isOpen) {
       fetchPatientComplete()
@@ -92,6 +129,13 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
   useEffect(() => {
     if (activeTab === 'history' && patient && isOpen) {
       fetchVisits()
+    }
+  }, [activeTab, patient, isOpen])
+
+  useEffect(() => {
+    if (activeTab === 'psycho' && patient && isOpen) {
+      fetchAvailableExams()
+      fetchPatientExamResults()
     }
   }, [activeTab, patient, isOpen])
 
@@ -195,6 +239,81 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Functions for psychotechnical exams
+  const handleExamSelection = (exam: Exam) => {
+    setSelectedExam(exam)
+    // Initialize answers array for all questions using real question IDs from backend
+    const initialAnswers: QuestionAnswer[] = []
+    exam.categories.forEach((category) => {
+      category.questions.forEach((question) => {
+        initialAnswers.push({
+          question_id: question.question_id, // Use real question ID from backend
+          selected_option: ''
+        })
+      })
+    })
+    setExamAnswers(initialAnswers)
+    setExamNotes('')
+    setExamObservations('')
+  }
+
+  const handleAnswerChange = (questionId: string, selectedOption: string) => {
+    setExamAnswers(prev => 
+      prev.map(answer => 
+        answer.question_id === questionId 
+          ? { ...answer, selected_option: selectedOption }
+          : answer
+      )
+    )
+  }
+
+  const handleSubmitExam = async () => {
+    if (!patient || !selectedExam) return
+
+    // Validate all questions are answered
+    const unansweredQuestions = examAnswers.filter(answer => !answer.selected_option.trim())
+    if (unansweredQuestions.length > 0) {
+      alert('Por favor responde todas las preguntas antes de enviar el examen.')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const examSubmission: ExamSubmission = {
+        exam_id: selectedExam.exam_id, // Use real exam_id from backend
+        patient_dni: patient.dni,
+        answers: examAnswers,
+        notes: examNotes.trim() || undefined,
+        observations: examObservations.trim() || undefined
+      }
+
+      await submitExamResult(examSubmission)
+      await fetchPatientExamResults()
+      
+      // Reset form
+      setSelectedExam(null)
+      setExamAnswers([])
+      setExamNotes('')
+      setExamObservations('')
+      setShowExamForm(false)
+      
+      alert('Examen enviado correctamente')
+    } catch (error) {
+      console.error('Error submitting exam:', error)
+      alert('Error al enviar el examen')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCancelExam = () => {
+    setSelectedExam(null)
+    setExamAnswers([])
+    setExamNotes('')
+    setExamObservations('')
+    setShowExamForm(false)
   }
 
   const handleVisitClick = (visitId: string) => {
@@ -357,6 +476,17 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
             >
               <DocumentTextIcon className="h-4 w-4 inline mr-2" />
               Radiología
+            </button>
+            <button
+              onClick={() => setActiveTab('psycho')}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'psycho'
+                  ? 'border-hospital-blue text-hospital-blue'
+                  : 'border-transparent text-gray-900 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <AcademicCapIcon className="h-4 w-4 inline mr-2" />
+              Exámenes Psicotécnicos
             </button>
             <button
               onClick={() => setActiveTab('history')}
@@ -1516,6 +1646,256 @@ export default function PatientDetails({ patient, isOpen, onClose, onPatientUpda
                             </a>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Exámenes Psicotécnicos Tab */}
+          {activeTab === 'psycho' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h4 className="text-lg font-semibold">Exámenes Psicotécnicos</h4>
+                <button
+                  onClick={() => setShowExamForm(!showExamForm)}
+                  className="bg-hospital-blue text-white px-4 py-2 rounded-md hover:bg-hospital-blue/80"
+                >
+                  <PlusIcon className="h-4 w-4 inline mr-2" />
+                  Realizar Examen
+                </button>
+              </div>
+
+              {/* Formulario para nuevo examen */}
+              {showExamForm && (
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  {!selectedExam ? (
+                    /* Selección de examen */
+                    <div>
+                      <h5 className="font-medium mb-4">Seleccionar Examen</h5>
+                      {loadingExams ? (
+                        <div className="flex justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-hospital-blue"></div>
+                        </div>
+                      ) : availableExams.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500">
+                          No hay exámenes disponibles
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {availableExams.map((exam) => (
+                            <div
+                              key={exam.exam_id}
+                              className="border border-gray-300 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors"
+                              onClick={() => handleExamSelection(exam)}
+                            >
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h6 className="font-medium text-gray-900">{exam.name}</h6>
+                                  <p className="text-sm text-gray-600 mt-1">{exam.description}</p>
+                                  <div className="flex items-center mt-2 text-xs text-gray-500">
+                                    <span className="mr-4">
+                                      {exam.categories.length} categoría{exam.categories.length !== 1 ? 's' : ''}
+                                    </span>
+                                    <span className="mr-4">
+                                      {exam.categories.reduce((total, cat) => total + cat.questions.length, 0)} pregunta{exam.categories.reduce((total, cat) => total + cat.questions.length, 0) !== 1 ? 's' : ''}
+                                    </span>
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      Máx. {exam.max_error_allowed} errores
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-4 flex justify-end">
+                        <button
+                          onClick={() => setShowExamForm(false)}
+                          className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Formulario de examen */
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h5 className="font-medium">Realizando: {selectedExam.name}</h5>
+                        <span className="text-sm text-gray-500">
+                          Máximo {selectedExam.max_error_allowed} errores permitidos
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {selectedExam.categories.map((category, categoryIndex) => (
+                          <div key={category.category_id} className="border border-gray-200 rounded-lg p-4">
+                            <h6 className="font-medium text-gray-900 mb-2">{category.name}</h6>
+                            {category.description && (
+                              <p className="text-sm text-gray-600 mb-4">{category.description}</p>
+                            )}
+                            
+                            <div className="space-y-4">
+                              {category.questions.map((question, questionIndex) => {
+                                const questionId = question.question_id // Use real question ID from backend
+                                const answer = examAnswers.find(a => a.question_id === questionId)
+                                
+                                return (
+                                  <div key={question.question_id} className="bg-white p-4 rounded border">
+                                    <p className="font-medium text-gray-900 mb-3">
+                                      {questionIndex + 1}. {question.question}
+                                    </p>
+                                    <div className="space-y-2">
+                                      {question.options.map((option, optionIndex) => (
+                                        <label
+                                          key={optionIndex}
+                                          className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                        >
+                                          <input
+                                            type="radio"
+                                            name={questionId}
+                                            value={option}
+                                            checked={answer?.selected_option === option}
+                                            onChange={(e) => handleAnswerChange(questionId, e.target.value)}
+                                            className="mr-3 text-hospital-blue focus:ring-hospital-blue"
+                                          />
+                                          <span className="text-sm text-gray-700">{option}</span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                        )}
+                        
+                        {/* Notas y observaciones */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Notas del Examinador
+                            </label>
+                            <textarea
+                              value={examNotes}
+                              onChange={(e) => setExamNotes(e.target.value)}
+                              rows={3}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              placeholder="Observaciones durante el examen..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Observaciones Adicionales
+                            </label>
+                            <textarea
+                              value={examObservations}
+                              onChange={(e) => setExamObservations(e.target.value)}
+                              rows={3}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              placeholder="Comportamiento del paciente, condiciones del examen..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6 flex justify-end space-x-3">
+                        <button
+                          onClick={handleCancelExam}
+                          className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={handleSubmitExam}
+                          disabled={isLoading || examAnswers.some(answer => !answer.selected_option.trim())}
+                          className="px-4 py-2 bg-hospital-blue text-white rounded-md hover:bg-hospital-blue/80 disabled:opacity-50"
+                        >
+                          {isLoading ? 'Enviando...' : 'Enviar Examen'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Lista de resultados de exámenes existentes */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h5 className="font-medium text-gray-900">Historial de Exámenes</h5>
+                  {patientExamHistory && patientExamHistory.exam_results.length > 0 && (
+                    <div className="flex items-center space-x-4 text-sm">
+                      <span className="text-gray-600">
+                        Total: <span className="font-medium">{patientExamHistory.total_exams}</span>
+                      </span>
+                      <span className="text-green-600">
+                        Aprobados: <span className="font-medium">{patientExamHistory.passed_exams}</span>
+                      </span>
+                      <span className="text-red-600">
+                        Fallidos: <span className="font-medium">{patientExamHistory.failed_exams}</span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {loadingExamResults ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hospital-blue"></div>
+                  </div>
+                ) : !patientExamHistory || patientExamHistory.exam_results.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No hay exámenes psicotécnicos registrados
+                  </div>
+                ) : (
+                  patientExamHistory.exam_results.map((result) => (
+                    <div key={result.result_id} className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h6 className="font-medium text-gray-900">
+                            {result.exam_name}
+                          </h6>
+                          <div className="flex items-center mt-1 text-sm space-x-3">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              result.is_approved ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {result.is_approved ? 'APROBADO' : 'NO APROBADO'}
+                            </span>
+                            <span className="text-gray-600">
+                              Puntuación: {result.score_percentage.toFixed(1)}%
+                            </span>
+                            <span className="text-gray-600">
+                              {result.correct_answers}/{result.total_questions} correctas
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-sm text-gray-500">
+                          {formatDate(result.exam_date)}
+                        </span>
+                      </div>
+                      
+                      {result.notes && (
+                        <div className="mb-2">
+                          <span className="font-medium text-sm">Notas:</span>
+                          <p className="text-sm text-gray-700 mt-1">{result.notes}</p>
+                        </div>
+                      )}
+                      
+                      {result.observations && (
+                        <div className="mb-2">
+                          <span className="font-medium text-sm">Observaciones:</span>
+                          <p className="text-sm text-gray-700 mt-1">{result.observations}</p>
+                        </div>
+                      )}
+                      
+                      <div className="text-sm text-gray-600 border-t border-gray-200 pt-2 mt-2">
+                        <span className="font-medium">Evaluado por:</span>
+                        <span className="ml-2">
+                          {result.examiner_name} ({result.examiner_dni}) - {result.examiner_role}
+                        </span>
                       </div>
                     </div>
                   ))

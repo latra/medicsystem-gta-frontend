@@ -11,9 +11,23 @@ const doctorNavigation = [
   { name: 'Admisiones', href: '/admissions', current: false },
 ]
 
+// Navigation items for admins (medical + exam management)
+const adminDoctorNavigation = [
+  { name: 'Nuestro Equipo', href: '/team', current: false },
+  { name: 'Pacientes', href: '/patients', current: false },
+  { name: 'Admisiones', href: '/admissions', current: false },
+  { name: 'Exámenes', href: '/exams', current: false },
+]
+
 // Navigation items for police and other users
 const generalNavigation = [
   { name: 'Nuestro Equipo', href: '/team', current: false },
+]
+
+// Navigation items for admin police
+const adminPoliceNavigation = [
+  { name: 'Nuestro Equipo', href: '/team', current: false },
+  { name: 'Exámenes', href: '/exams', current: false },
 ]
 
 // Navigation for non-authenticated users
@@ -48,14 +62,21 @@ export default function Navbar() {
       return publicNavigation
     }
     
+    // Check if user is admin
+    const isAdmin = systemUser?.is_admin || doctor?.is_admin || police?.is_admin
+    
     // Check if user is a doctor (either from systemUser or legacy doctor)
     const isDoctor = systemUser?.role === 'doctor' || doctor
     
     if (isDoctor) {
-      return doctorNavigation
+      return isAdmin ? adminDoctorNavigation : doctorNavigation
     }
     
-    // For police and other authenticated users
+    if (isPolice) {
+      return isAdmin ? adminPoliceNavigation : generalNavigation
+    }
+    
+    // For other authenticated users
     return generalNavigation
   }
 
@@ -104,7 +125,7 @@ export default function Navbar() {
                     href={item.href}
                     aria-current={item.current ? 'page' : undefined}
                     className={classNames(
-                      item.current ? 'bg-hospital-blue/80 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
+                      item.current ? `bg-black/20 text-white` : 'text-gray-300 hover:bg-white/5 hover:text-white',
                       'rounded-md px-3 py-2 text-md font-medium',
                     )}
                   >
