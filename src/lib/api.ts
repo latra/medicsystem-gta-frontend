@@ -592,7 +592,7 @@ export interface VisitComplete {
   date_of_admission?: string
   date_of_discharge?: string
   admission_heart_rate?: number
-  admission_blood_pressure?: number
+  admission_blood_pressure?: string
   admission_temperature?: number
   admission_oxygen_saturation?: number
   diagnosis?: string
@@ -614,7 +614,7 @@ export interface VisitBase {
   location: string
   admission_status: PatientStatus
   admission_heart_rate?: number
-  admission_blood_pressure?: number
+  admission_blood_pressure?: string
   admission_temperature?: number
   admission_oxygen_saturation?: number
   triage?: Triage
@@ -623,7 +623,7 @@ export interface VisitBase {
 export interface VisitUpdate {
   reason?: string
   admission_heart_rate?: number
-  admission_blood_pressure?: number
+  admission_blood_pressure?: string
   admission_temperature?: number
   admission_oxygen_saturation?: number
   triage?: Triage

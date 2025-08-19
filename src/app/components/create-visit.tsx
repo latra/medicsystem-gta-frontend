@@ -326,10 +326,10 @@ export default function CreateVisit({ patientDni, patientName, isOpen, onClose, 
                     Presión Arterial
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="admission_blood_pressure"
                     value={formData.admission_blood_pressure || ''}
-                    onChange={handleNumberInputChange}
+                    onChange={handleInputChange}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#4fbbeb] focus:border-[#4fbbeb] text-sm"
                     placeholder="mmHg"
                   />
